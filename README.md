@@ -73,8 +73,8 @@ export AWS_SHARED_CREDENTIALS_FILE=$(realpath ~/.aws/credentials)
 export PULUMI_CONFIG_PASSPHRASE=$(cat secrets/pulumi/$ENVIRONMENT/encryption.secret)
 
 # This SSH key will be used to enable access to the machines
-export SSH_KEY_PATH=~/.ssh/id_rsa
-export SSH_KEY_ABS_PATH=$(realpath $SSH_KEY_PATH)
+export SSH_PUB_KEY_PATH=~/.ssh/id_rsa
+export SSH_PUB_KEY_ABS_PATH=$(realpath $SSH_KEY_PATH)
 ```
 
 Save the contents of the above example to `.envrc` (*not* `.env`).

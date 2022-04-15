@@ -23,8 +23,8 @@ K8S_NAMESPACE ?= con-$(ENVIRONMENT)
 
 # Used for accessing machines after they've been provisioned
 # (you shouldn't need to use this, but just in case!)
-SSH_KEY_PATH ?= ~/.ssh/id_rsa
-SSH_KEY_ABS_PATH ?= $(realpath $(SSH_KEY_PATH))
+SSH_PUB_KEY_PATH ?= ~/.ssh/id_rsa.pub
+SSH_PUB_KEY_ABS_PATH ?= $(realpath $(SSH_PUB_KEY_PATH))
 
 # Where the k8s cluster will be stored
 K8S_CLUSTER_SECRETS_FOLDER_PATH = ./secrets/k8s/cluster
