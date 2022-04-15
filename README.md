@@ -65,6 +65,10 @@ export AWS_PROFILE=con-experiemnt
 export AWS_CONFIG_FILE=$(realpath ~/.aws/config)
 export AWS_SHARED_CREDENTIALS_FILE=$(realpath ~/.aws/credentials)
 
+## Optionally, instead of AWS_PROFILE, AWS_CONFIG_FILE, and AWS_SHARED_CREDENTIALS_FILE...
+# export AWS_ACCESS_KEY_ID=$(cat secrets/aws/access-key-id.secret)
+# export AWS_SECRET_ACCESS_KEY=$(cat secrets/aws/secret-access-key.secret)
+
 # NOTE: this file is created by setup
 export PULUMI_CONFIG_PASSPHRASE=$(cat secrets/pulumi/$ENVIRONMENT/encryption.secret)
 
