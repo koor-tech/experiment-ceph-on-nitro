@@ -13,8 +13,8 @@ const config = new pulumi.Config();
 const environment = process.env.ENVIRONMENT;
 if (!environment) { throw new Error("ENV variable [ENVIRONMENT] missing"); }
 
-const sshKeyAbsolutePath = process.env.SSH_KEY_ABS_PATH;
-if (!sshKeyAbsolutePath) { throw new Error("ENV variable [SSH_KEY_ABS_PATH] missing"); }
+const sshKeyAbsolutePath = process.env.SSH_PUB_KEY_ABS_PATH;
+if (!sshKeyAbsolutePath) { throw new Error("ENV variable [SSH_PUB_KEY_ABS_PATH] missing"); }
 
 const ec2InstanceType = config.require("ec2-instance-type");
 const ec2Node0AZ = config.require("ec2-node0-az");
