@@ -1,10 +1,11 @@
-.PHONY: all test \
+.PHONY: all \
+				setup \
+				secrets secret-folders secrets-generated clean-secrets-generated \
 				deploy deploy-infra deploy-k8s deploy-rook \
 				test test-k8s-pgbench \
 				check-ENV-ENVIRONMENT \
 				check-tool-kubectl check-tool-pulumi \
-				k0s-generated-folder generate-k0s-yaml \
-				secrets secret-folders secrets-generated clean-secrets-generated
+				k0s-generated-folder generate-k0s-yaml
 
 DOCKER ?= docker
 KUBECTL ?= kubectl
@@ -36,7 +37,9 @@ POSTGRES_IMAGE ?= postgres:14.2-alpine
 # Top level targets #
 #####################
 
-all: deploy test
+all: setup deploy test
+
+setup: secrets
 
 deploy: deploy-infra deploy-k8s deploy-rook
 

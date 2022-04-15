@@ -1,8 +1,7 @@
-encryptionsalt: v1:+vYxrxh5kEY=:v1:1ZH1PjAQYvJOGPkS:1gtacOV6R0o6o/2Xtj9Hn2I0zPoM0Q==
+encryptionsalt: v1:1V1aX+VFeQA=:v1:30U/uPjC1+wh7AW0:1dsZtvlJ+LP08e7zmW59rTg0ou/mtg==
 config:
   aws:region: us-west-2
-  con:ec2-az-list:
-  - us-west-2b
-  - us-west-2c
-  - us-west-2d
   con:ec2-instance-type: t3.micro
+  con:ec2-node0-az: us-west-2b
+  con:ec2-node1-az: us-west-2c
+  con:ec2-node2-az: us-west-2d

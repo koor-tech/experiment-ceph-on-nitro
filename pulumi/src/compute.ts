@@ -1,13 +1,27 @@
+import * as fs from "fs";
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 
 // import { vpc } from "./network.ts";
 
-const environment = process.env.ENVIRONMENT;
-const sshKeyAbsolutePath = process.env.SSH_KEY_ABS_PATH;
+///////////////////////////
+// Setup & Configuration //
+///////////////////////////
 
-const ec2InstanceType = config.require<string>("ec2-instance-type");
-const ec2AZList = config.require<string[]>("ec2-az-list");
+const config = new pulumi.Config();
+
+const environment = process.env.ENVIRONMENT;
+if (!environment) { throw new Error("ENV variable [ENVIRONMENT] missing"); }
+
+const sshKeyAbsolutePath = process.env.SSH_KEY_ABS_PATH;
+if (!sshKeyAbsolutePath) { throw new Error("ENV variable [SSH_KEY_ABS_PATH] missing"); }
+
+const ec2InstanceType = config.require("ec2-instance-type");
+const ec2Node0AZ = config.require("ec2-node0-az");
+
+/////////
+// AMI //
+/////////
 
 // https://www.pulumi.com/registry/packages/aws/api-docs/ec2/instance/
 const ami = aws.ec2.getAmi({
@@ -31,10 +45,10 @@ const ami = aws.ec2.getAmi({
 
 const adminSSHKey = new aws.ec2.KeyPair(
   "admin-ssh-key",
-  { publicKey: fs.readFileSync(sshKeyAbsolutePath) },
+  { publicKey: fs.readFileSync(sshKeyAbsolutePath).toString() },
 );
 
-export adminSSHKeyName = adminSSHKey.name;
+export const adminSSHKeyKeyPairID = adminSSHKey.keyPairId;
 
 ////////////
 // Node 0 //
@@ -45,8 +59,8 @@ const node0 = new aws.ec2.Instance(
   {
     ami: ami.then(ami => ami.id),
     instanceType: ec2InstanceType,
-    availabilityZone: ec2AZList[0],
-    keyName: adminSSHKeyName,
+    availabilityZone: ec2Node0AZ,
+    keyName: adminSSHKeyKeyPairID,
     tags: {
       NodeId: "0",
       Environment: environment,

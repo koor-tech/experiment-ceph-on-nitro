@@ -1,6 +1,16 @@
 # Secrets
 secrets/*
+
+# Direnv
+/.env
+/.envrc
+
+# k0s
 /k0s/generated/
+
+# Pulumi
 /pulumi/yarn-error.log
 /pulumi/node_modules/
 /pulumi/bin/
+
+# Misc

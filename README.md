@@ -36,7 +36,7 @@ To run this experiment you'll need to do the following:
 
 1. Install [`direnv`][direnv]
 2. Install [`git-crypt`][git-crypt] and set up a `secrets` directory (`git-crypt init && mkdir secrets`)
-2. Setup your [CLI AWS credentials][aws-credentials]
+2. Setup your [CLI AWS credentials][aws-credentials], use a profile named `con-experiment`.
 3. Fill out and use the example `.env` at the bottom of this file
 
 ### Run setup
@@ -52,17 +52,28 @@ After setup completes you should have some new folders including but not limited
 - `secrets` (whose contents should never be checked in, for *this* repo -- see `.gitignore`)
 - `secrets/pulumi` (Pulumi-related secrets)
 
-### Example `.env` configuration
+### Example `.envrc` configuration
 
-Here's a `.env` file you should fill out:
+Here's a `.envrc` file you should fill out:
 
 ```bash
-# NOTE: this file is created by setup
-export PULUMI_CONFIG_PASSPHRASE=$(cat secrets/pulumi/password-encryption.secret)
+# stock | nitro
+export ENVIRONMENT=stock
 
-export AWS_CONFIG_FILE=$(realpath path/to/your/aws/config/file)
-export AWS_SHARED_CREDENTIALS_FILE=$(realpath path/to/your/aws/config/file)
+# AWS credentials
+export AWS_PROFILE=con-experiemnt
+export AWS_CONFIG_FILE=$(realpath ~/.aws/config)
+export AWS_SHARED_CREDENTIALS_FILE=$(realpath ~/.aws/credentials)
+
+# NOTE: this file is created by setup
+export PULUMI_CONFIG_PASSPHRASE=$(cat secrets/pulumi/$ENVIRONMENT/encryption.secret)
+
+# This SSH key will be used to enable access to the machines
+export SSH_KEY_PATH=~/.ssh/id_rsa
+export SSH_KEY_ABS_PATH=$(realpath $SSH_KEY_PATH)
 ```
+
+Save the contents of the above example to `.envrc` (*not* `.env`).
 
 ## Running the experiment
 
