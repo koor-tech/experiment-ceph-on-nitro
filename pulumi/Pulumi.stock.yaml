@@ -5,3 +5,4 @@ config:
   con:ec2-node0-az: us-west-2b
   con:ec2-node1-az: us-west-2c
   con:ec2-node2-az: us-west-2d
+  con:ec2-ssh-key-name: con-experiment-ssh

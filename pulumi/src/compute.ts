@@ -18,6 +18,7 @@ if (!sshKeyAbsolutePath) { throw new Error("ENV variable [SSH_PUB_KEY_ABS_PATH] 
 
 const ec2InstanceType = config.require("ec2-instance-type");
 const ec2Node0AZ = config.require("ec2-node0-az");
+const ec2SSHKeyName = config.require("ec2-ssh-key-name");
 
 /////////
 // AMI //
@@ -45,10 +46,12 @@ const ami = aws.ec2.getAmi({
 
 const adminSSHKey = new aws.ec2.KeyPair(
   "admin-ssh-key",
-  { publicKey: fs.readFileSync(sshKeyAbsolutePath).toString() },
+  {
+    keyName: ec2SSHKeyName,
+    publicKey: fs.readFileSync(sshKeyAbsolutePath).toString() },
 );
 
-export const adminSSHKeyKeyPairID = adminSSHKey.keyPairId;
+export const adminSSHKeyKeyName = adminSSHKey.keyName;
 
 ////////////
 // Node 0 //
@@ -60,7 +63,7 @@ const node0 = new aws.ec2.Instance(
     ami: ami.then(ami => ami.id),
     instanceType: ec2InstanceType,
     availabilityZone: ec2Node0AZ,
-    keyName: adminSSHKeyKeyPairID,
+    keyName: adminSSHKeyKeyName,
     tags: {
       NodeId: "0",
       Environment: environment,
