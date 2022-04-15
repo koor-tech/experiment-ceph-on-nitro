@@ -1,3 +1,5 @@
 # Secrets
 secrets/*
 /k0s/generated/
+/pulumi/yarn-error.log
+/pulumi/node_modules/

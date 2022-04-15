@@ -9,6 +9,7 @@ DOCKER ?= docker
 KUBECTL ?= kubectl
 ENVSUBST ?= envsubst
 K0SCTL ?= k0sctl
+PULUMI ?= pulumi
 
 ENVIRONMENT ?= stock # stock | nitro
 
@@ -47,7 +48,7 @@ ifeq (,$(ENVIRONMENT))
 endif
 
 check-tool-kubectl:
-ifeq (,$(shell which "$(KUBECTL)"))
+ifeq (,$(shell which $(KUBECTL)))
 	$(error "ERROR: kubectl does not seem to be installed (https://kubernetes.io/docs/tasks/tools/)")
 endif
 
@@ -76,7 +77,8 @@ K0SCTL_YAML_PATH ?= $(K0SCTL_GENERATED_DIR_PATH)/k0sctl.yaml
 deploy-infra: deploy-pulumi
 
 deploy-pulumi:
-	$(MAKE) -C pulumi
+	@echo -e "=> Deploying pulumi..."
+	@$(MAKE) -C pulumi
 
 k0s-generated-folder:
 	mkdir -p $(K0SCTL_GENERATED_DIR_PATH)
@@ -99,4 +101,5 @@ deploy-k8s: generate-k0s-yaml
 
 ## Deploy Rook
 deploy-rook:
+	@echo -e "=> Deploying rook to the cluster..."
 	$(MAKE) -C k8s

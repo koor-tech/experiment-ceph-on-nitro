@@ -1,0 +1,5 @@
+name: con
+runtime: nodejs
+description: Ceph-on-Nitro, how fast does Nitro make Ceph?
+backend:
+  url: file://./secrets/pulumi/state
