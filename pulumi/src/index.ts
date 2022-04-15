@@ -1,1 +1,2 @@
-export "./compute.ts";
+// export "./network.ts";
+import "./compute.ts";

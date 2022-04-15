@@ -39,11 +39,27 @@ To run this experiment you'll need to do the following:
 2. Setup your [CLI AWS credentials][aws-credentials]
 3. Fill out and use the example `.env` at the bottom of this file
 
+### Run setup
+
+To check some dependencies and run some automated setup, run teh setup target:
+
+```console
+$ make setup
+```
+
+After setup completes you should have some new folders including but not limited to the following:
+
+- `secrets` (whose contents should never be checked in, for *this* repo -- see `.gitignore`)
+- `secrets/pulumi` (Pulumi-related secrets)
+
 ### Example `.env` configuration
 
 Here's a `.env` file you should fill out:
 
 ```bash
+# NOTE: this file is created by setup
+export PULUMI_CONFIG_PASSPHRASE=$(cat secrets/pulumi/password-encryption.secret)
+
 export AWS_CONFIG_FILE=$(realpath path/to/your/aws/config/file)
 export AWS_SHARED_CREDENTIALS_FILE=$(realpath path/to/your/aws/config/file)
 ```

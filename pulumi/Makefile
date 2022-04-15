@@ -24,6 +24,17 @@ ifeq (,$(ENVIRONMENT))
 	$(error "ENVIRONMENT not specified")
 endif
 
+check-PULUMI_CONFIG_PASSPHRASE:
+ifeq (,$(PULUMI_CONFIG_PASSPHRASE))
+	$(error "PULUMI_CONFIG_PASSPHRASE not specified! Do you have your .env set up properly (with direnv)?")
+endif
+
+## Generate secret for pulumi if not already present
+PULUMI_SECRET_DIR ?= secrets/pulumi
+PULUMI_AWS_ACCESS_KEY_ID_PATH ?= $(PULUMI_SECRET_DIR)/aws-access-key-id.secret
+PULUMI_AWS_SECRET_ACCESS_KEY_PATH ?= $(PULUMI_SECRET_DIR)/aws-secret-access-key.secret
+
+
 #####################
 # Top level targets #
 #####################

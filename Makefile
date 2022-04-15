@@ -3,7 +3,8 @@
 				test test-k8s-pgbench \
 				check-ENV-ENVIRONMENT \
 				check-tool-kubectl check-tool-pulumi \
-				k0s-generated-folder generate-k0s-yaml
+				k0s-generated-folder generate-k0s-yaml \
+				secrets secret-folders secrets-generated clean-secrets-generated
 
 DOCKER ?= docker
 KUBECTL ?= kubectl
@@ -11,15 +12,18 @@ ENVSUBST ?= envsubst
 K0SCTL ?= k0sctl
 PULUMI ?= pulumi
 
-ENVIRONMENT ?= stock # stock | nitro
+# stock | nitro
+ENVIRONMENT ?= stock
 
-PROJECT_NAME ?= con # Ceph On Nitro
+# Ceph On Nitro
+PROJECT_NAME ?= con
 
 K8S_NAMESPACE ?= con-$(ENVIRONMENT)
 
 # Used for accessing machines after they've been provisioned
 # (you shouldn't need to use this, but just in case!)
 SSH_KEY_PATH ?= ~/.ssh/id_rsa
+SSH_KEY_ABS_PATH ?= $(realpath $(SSH_KEY_PATH))
 
 # Where the k8s cluster will be stored
 K8S_CLUSTER_SECRETS_FOLDER_PATH = ./secrets/k8s/cluster
@@ -61,6 +65,41 @@ check-tool-k0sctl:
 ifeq (,$(shell which $(K0SCTL)))
 	$(error "ERROR: k0sctl does not seem to be installed (https://docs.k0sproject.io/v1.23.5+k0s.0/install/)")
 endif
+
+###########
+# Secrets #
+###########
+
+PULUMI_SECRET_DIR ?= ./secrets/pulumi/$(ENVIRONMENT)
+PULUMI_ENCRYPTION_SECRET_PATH ?= $(PULUMI_SECRET_DIR)/encryption.secret
+
+## List of secrets that can be randomly generated
+RANDOMIZED_SECRET_PATHS ?= $(PULUMI_ENCRYPTION_SECRET_PATH)
+
+secrets: secret-folders secrets-generated
+
+secret-folders: check-ENV-ENVIRONMENT
+# Cross environment secrets
+	@mkdir -p $(PULUMI_SECRET_DIR)
+
+secret-gen-random-alpha:
+	@cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | tr -d \\n
+
+secrets-generated: secret-folders
+	@echo -e "[info] Generating known random-ok secrets..."
+	@for SECRET_PATH in $(RANDOMIZED_SECRET_PATHS) ; do \
+			[ -f $$SECRET_PATH ] && echo -e "[info] file @ [$$SECRET_PATH] already exists" && continue; \
+			echo -e "[info] Generating random secret @ [$$SECRET_PATH]..."; \
+			$(MAKE) -s --no-print-directory secret-gen-random-alpha > $$SECRET_PATH; \
+	done
+
+clean-secrets-generated:
+	@echo -e "[info] Removing generated random-ok secrets..."
+	@for SECRET_PATH in $(RANDOMIZED_SECRET_PATHS) ; do \
+			[ ! -f $$SECRET_PATH ] && echo -e "[info] file @ [$$SECRET_PATH] does not exist" && continue; \
+			echo -e "[info] removing random secret @ [$$SECRET_PATH]..."; \
+			rm -rf $$SECRET_PATH; \
+	done
 
 ##################
 # Infrastructure #
