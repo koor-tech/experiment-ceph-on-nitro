@@ -2,7 +2,7 @@
 
 [Nitro][aws-nitro] is faster than EBS right? But how much faster is it... on a real life workload -- an [atom scale][cern-ceph] storage system like [Ceph][ceph]? Let's find out.
 
-This research was funded by [OCV][ocv] & [Koor][koor] -- [Koor][koor] is on a mission to make your Ceph deployments a little less chaotic, and [Open Core Ventures][ocv] is providing rocket fuel.
+This research project (codenamed CoN/`con`) was funded by [OCV][ocv] & [Koor][koor] -- [Koor][koor] is on a mission to make your Ceph deployments a little less chaotic, and [Open Core Ventures][ocv] is providing rocket fuel.
 
 ## How are we going to test?
 
