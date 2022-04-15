@@ -1,4 +1,4 @@
-.PHONY: all install build deploy refresh \
+.PHONY: all install build deploy destroy refresh \
 				build-watch \
 				check-ENV-ENVIRONMENT
 
@@ -68,6 +68,10 @@ else
 	@echo -e "==> Running pulumi up..."
 	$(PULUMI) up --stack=$(ENVIRONMENT) --refresh
 endif
+
+destroy:
+	@echo -e "==> Removing deployment..."
+	$(PULUMI) destroy --stack=$(ENVIRONMENT) --refresh
 
 refresh:
 	@echo -e "==> Refreshing stack..."
