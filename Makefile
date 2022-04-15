@@ -2,12 +2,13 @@
 				deploy deploy-infra deploy-k8s deploy-rook \
 				test test-k8s-pgbench \
 				check-ENV-ENVIRONMENT \
-				check-tool-kubectl check-tool-pulumi
+				check-tool-kubectl check-tool-pulumi \
+				k0s-generated-folder generate-k0s-yaml
 
 DOCKER ?= docker
 KUBECTL ?= kubectl
 ENVSUBST ?= envsubst
-K0SCTL ?=  k0sctl
+K0SCTL ?= k0sctl
 
 ENVIRONMENT ?= stock # stock | nitro
 
@@ -46,7 +47,7 @@ ifeq (,$(ENVIRONMENT))
 endif
 
 check-tool-kubectl:
-ifeq (,$(shell which $(KUBECTL)))
+ifeq (,$(shell which "$(KUBECTL)"))
 	$(error "ERROR: kubectl does not seem to be installed (https://kubernetes.io/docs/tasks/tools/)")
 endif
 
@@ -69,23 +70,33 @@ NODE_1_IP_PATH ?= ./secrets/k8s/cluster/node.1.ip-address.secret
 NODE_2_IP_PATH ?= ./secrets/k8s/cluster/node.2.ip-address.secret
 
 K0SCTL_YAML_TEMPLATE_PATH ?= k0s/k0sctl.yaml.pre
-K0SCTL_YAML_PATH ?= k0s/generated/k0sctl.yaml
+K0SCTL_GENERATED_DIR_PATH ?= k0s/generated
+K0SCTL_YAML_PATH ?= $(K0SCTL_GENERATED_DIR_PATH)/k0sctl.yaml
 
 deploy-infra: deploy-pulumi
 
 deploy-pulumi:
-	$(MAKE) -c pulumi
+	$(MAKE) -C pulumi
 
-deploy-k8s: NODE_0_IP=$(read $(NODE_0_IP_EXPECTED_PATH))
-deploy-k8s: NODE_1_IP=$(read $(NODE_1_IP_EXPECTED_PATH))
-deploy-k8s: NODE_2_IP=$(read $(NODE_2_IP_EXPECTED_PATH))
-deploy-k8s:
-# Install k0s, quick & dirty
+k0s-generated-folder:
+	mkdir -p $(K0SCTL_GENERATED_DIR_PATH)
+
+## Generate the k0sctl YAML file
+generate-k0s-yaml: NODE_0_IP=$(read $(NODE_0_IP_EXPECTED_PATH))
+generate-k0s-yaml: NODE_1_IP=$(read $(NODE_1_IP_EXPECTED_PATH))
+generate-k0s-yaml: NODE_2_IP=$(read $(NODE_2_IP_EXPECTED_PATH))
+generate-k0s-yaml: k0s-generated-folder
 	@echo -e "=> Generating k0sctl.yaml based on template @ [$(K0SCTL_YAML_TEMPLATE_PATH)]"
-	cat $(K0SCTL_YAML_TEMPLATE_PATH) | $(ENVSUBST) > $(K0SCTL_YAML_PATH)
-# Install k0s, quick & dirty
+	export NODE_0_IP=$(NODE_0_IP); \
+		&& export NODE_1_IP=$(NODE_1_IP); \
+		&& export NODE_2_IP=$(NODE_2_IP); \
+		&& cat $(K0SCTL_YAML_TEMPLATE_PATH) | $(ENVSUBST) > $(K0SCTL_YAML_PATH)
+
+## Install k0s, quick & dirty
+deploy-k8s: generate-k0s-yaml
 	@echo -e "=> Running k0sctl..."
 	$(K0SCTL) -c $(K0SCTL_YAML_PATH)
 
+## Deploy Rook
 deploy-rook:
-	$(MAKE) -c k8s
+	$(MAKE) -C k8s

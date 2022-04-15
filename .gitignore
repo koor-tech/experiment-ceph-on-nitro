@@ -1,2 +1,3 @@
 # Secrets
 secrets/*
+/k0s/generated/
