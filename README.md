@@ -118,3 +118,4 @@ For more information on what runs in each target, see [`Makefile`](./Makefile).
 [direnv]: https://direnv.net
 [rook]: https://rook.io/docs
 [git-crypt]: https://www.agwa.name/projects/git-crypt/
+[ceph]: https://docs.ceph.com
