@@ -3,7 +3,14 @@ import * as path from "path";
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 
-// import { vpc } from "./network.ts";
+import {
+  allowSSHSecurityGroupID,
+  mainVPCSubnetID,
+  allowDNSSecurityGroupID,
+  allowETCDSecurityGroupID,
+  allowSSHSecurityGroupIDID,
+  allowK0SSecurityGroupID,
+} from "./network.ts";
 
 ///////////////////////////
 // Setup & Configuration //
@@ -79,6 +86,14 @@ const ctrl0 = new aws.ec2.Instance(
     availabilityZone: ec2Ctrl0AZ,
     keyName: adminSSHKeyKeyName,
 
+    subnetId: mainVPCSubnetID,
+    vpcSecurityGroupIds: [
+      allowDNSSecurityGroupID,
+      allowSSHSecurityGroupID,
+      allowETCDSecurityGroupID,
+      allowK0SSecurityGroupID,
+    ],
+
     userData: fs.readFileSync(ctrlUserDataAbsolutePath).toString(),
 
     tags: {
@@ -106,6 +121,14 @@ const worker0 = new aws.ec2.Instance(
     availabilityZone: ec2Worker0AZ,
     keyName: adminSSHKeyKeyName,
 
+    subnetId: mainVPCSubnetID,
+    vpcSecurityGroupIds: [
+      allowDNSSecurityGroupID,
+      allowSSHSecurityGroupID,
+      allowETCDSecurityGroupID,
+      allowK0SSecurityGroupID,
+    ],
+
     userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
 
     tags: {
@@ -126,6 +149,14 @@ const worker1 = new aws.ec2.Instance(
     availabilityZone: ec2Worker1AZ,
     keyName: adminSSHKeyKeyName,
 
+    subnetId: mainVPCSubnetID,
+    vpcSecurityGroupIds: [
+      allowDNSSecurityGroupID,
+      allowSSHSecurityGroupID,
+      allowETCDSecurityGroupID,
+      allowK0SSecurityGroupID,
+    ],
+
     userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
 
     tags: {
@@ -145,6 +176,14 @@ const worker2 = new aws.ec2.Instance(
     instanceType: ec2InstanceType,
     availabilityZone: ec2Worker2AZ,
     keyName: adminSSHKeyKeyName,
+
+    subnetId: mainVPCSubnetID,
+    vpcSecurityGroupIds: [
+      allowDNSSecurityGroupID,
+      allowSSHSecurityGroupID,
+      allowETCDSecurityGroupID,
+      allowK0SSecurityGroupID,
+    ],
 
     userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
 
