@@ -98,6 +98,7 @@ const ctrl0 = new aws.ec2.Instance(
 );
 
 export const ctrl0PublicIPV4 = ctrl0.publicIp;
+export const ctrl0PrivateIPV4 = ctrl0.privateIp;
 
 //////////////////
 // Worker nodes //
@@ -129,6 +130,7 @@ const worker0 = new aws.ec2.Instance(
 
 
 export const worker0PublicIPV4 = worker0.publicIp;
+export const worker0PrivateIPV4 = worker0.privateIp;
 
 const worker1 = new aws.ec2.Instance(
   `${environment}-worker-1`,
@@ -155,6 +157,7 @@ const worker1 = new aws.ec2.Instance(
 );
 
 export const worker1PublicIPV4 = worker1.publicIp;
+export const worker1PrivateIPV4 = worker1.privateIp;
 
 const worker2 = new aws.ec2.Instance(
   `${environment}-worker-2`,
@@ -181,6 +184,7 @@ const worker2 = new aws.ec2.Instance(
 );
 
 export const worker2PublicIPV4 = worker2.publicIp;
+export const worker2PrivateIPV4 = worker2.privateIp;
 
 //////////////////
 // File Outputs //
@@ -188,8 +192,29 @@ export const worker2PublicIPV4 = worker2.publicIp;
 
 // Write the load balancer IP for the controllers to disk to disk
 pulumi
-  .all([ ctrl0PublicIPV4, worker0PublicIPV4, worker1PublicIPV4, worker2PublicIPV4 ])
-  .apply(([ ctrlIP, worker0IP, worker1IP, worker2IP ]) => {
+  .all([
+    ctrl0PublicIPV4,
+    ctrl0PrivateIPV4,
+    worker0PublicIPV4,
+    worker0PrivateIPV4,
+    worker1PublicIPV4,
+    worker1PrivateIPV4,
+    worker2PublicIPV4,
+    worker2PrivateIPV4,
+  ])
+  .apply((args) => {
+
+    const [
+      ctrlPublicIP,
+      ctrlPrivateIP,
+      worker0PublicIP,
+      worker0PrivateIP,
+      worker1PublicIP,
+      worker1PrivateIP,
+      worker2PublicIP,
+      worker2PrivateIP,
+    ] = args;
+
     let filePath;
     const outputDir = clusterOutputDirectory;
 
@@ -197,22 +222,23 @@ pulumi
     fs.mkdirSync(outputDir, { recursive: true });
 
     // Write ipv4 for ctrl 0
-    filePath = path.join(outputDir, "ctrl-0-ipv4Address")
-    fs.writeFileSync(filePath, ctrlIP);
-    pulumi.log.info(`successfuly wrote controller ctrl-0 IPv4 address @ [${filePath}]`);
+    fs.writeFileSync(path.join(outputDir, "ctrl-0-public-ipv4Address"), ctrlPublicIP);
+    fs.writeFileSync(path.join(outputDir, "ctrl-0-private-ipv4Address"), ctrlPrivateIP);
+    pulumi.log.info("successfuly wrote controller ctrl-0 IPv4 addresses");
 
     // Write ipv4 for worker 0
-    filePath = path.join(outputDir, "worker-0-ipv4Address")
-    fs.writeFileSync(filePath, worker0IP);
-    pulumi.log.info(`successfuly wrote worker 0 IPv4 address @ [${filePath}]`);
+    fs.writeFileSync(path.join(outputDir, "worker-0-public-ipv4Address"), worker0PublicIP);
+    fs.writeFileSync(path.join(outputDir, "worker-0-private-ipv4Address"), worker0PrivateIP);
+    pulumi.log.info("successfuly wrote worker 0 IPv4 addresses");
 
     // Write ipv4 for worker 1
-    filePath = path.join(outputDir, "worker-1-ipv4Address")
-    fs.writeFileSync(filePath, worker1IP);
-    pulumi.log.info(`successfuly wrote worker 1 IPv4 address @ [${filePath}]`);
+    fs.writeFileSync(path.join(outputDir, "worker-1-public-ipv4Address"), worker1PublicIP);
+    fs.writeFileSync(path.join(outputDir, "worker-1-private-ipv4Address"), worker1PrivateIP);
+    pulumi.log.info("successfuly wrote worker 1 IPv4 addresses");
 
     // Write ipv4 for worker 2
-    filePath = path.join(outputDir, "worker-2-ipv4Address")
-    fs.writeFileSync(filePath, worker2IP);
-    pulumi.log.info(`successfuly wrote worker 2 IPv4 address @ [${filePath}]`);
+    fs.writeFileSync(path.join(outputDir, "worker-2-public-ipv4Address"), worker2PublicIP);
+    fs.writeFileSync(path.join(outputDir, "worker-2-private-ipv4Address"), worker2PrivateIP);
+    pulumi.log.info("successfuly wrote worker 2 IPv4 addresses");
+
   });

@@ -10,10 +10,10 @@ spec:
     config:
       spec:
         api:
-          externalAddress: ${CTRL_0_IP}
-          # address: 49.12.22.21 # TODO: replace with private internal-only address...? Don't really have one...
+          externalAddress: ${CTRL_0_PUBLIC_IP}
+          address: ${CTRL_0_PRIVATE_IP}
           sans:
-            - ${CTRL_0_IP}
+            - ${CTRL_0_PUBLIC_IP}
           port: 6443
           k0sApiPort: 9443
           extraArgs:
@@ -63,29 +63,29 @@ spec:
 
     - role: controller
       ssh:
-        address: ${CTRL_0_IP} # envsubst
+        address: ${CTRL_0_PUBLIC_IP} # envsubst
         user: ubuntu
         port: 22
         keyPath: ~/.ssh/id_rsa
 
     ################
     # Worker Nodes #
-    ################
+    
 
-    # - role: worker
-    #   ssh:
-    #     address: ${WORKER_0_IP} # envsubst
-    #     user: ubuntu
-    #     keyPath: ~/.ssh/id_rsa
+    - role: worker
+      ssh:
+        address: ${WORKER_0_PUBLIC_IP} # envsubst
+        user: ubuntu
+        keyPath: ~/.ssh/id_rsa
 
-    # - role: worker
-    #   ssh:
-    #     address: ${WORKER_1_IP} # envsubst
-    #     user: ubuntu
-    #     keyPath: ~/.ssh/id_rsa
+    - role: worker
+      ssh:
+        address: ${WORKER_1_PUBLIC_IP} # envsubst
+        user: ubuntu
+        keyPath: ~/.ssh/id_rsa
 
-    # - role: worker
-    #   ssh:
-    #     address: ${WORKER_2_IP} # envsubst
-    #     user: ubuntu
-    #     keyPath: ~/.ssh/id_rsa
+    - role: worker
+      ssh:
+        address: ${WORKER_2_PUBLIC_IP} # envsubst
+        user: ubuntu
+        keyPath: ~/.ssh/id_rsa

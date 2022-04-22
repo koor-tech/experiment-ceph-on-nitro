@@ -127,7 +127,7 @@ deploy-infra: deploy-pulumi ssh-add-keys
 
 deploy-pulumi:
 	@echo -e "=> Deploying pulumi..."
-	@$(MAKE) -C pulumi
+	@$(MAKE) -C pulumi FORCE=yes
 
 ##############
 # Kubernetes #
@@ -149,44 +149,44 @@ deploy-rook:
 
 INSTANCE_USER ?= ubuntu
 
-CTRL_0_IP_PATH ?= $(CLUSTER_SECRET_DIR)/ctrl-0-ipv4Address
-CTRL_0_IP=$(shell cat $(CTRL_0_IP_PATH))
+CTRL_0_PUBLIC_IP_PATH ?= $(CLUSTER_SECRET_DIR)/ctrl-0-public-ipv4Address
+CTRL_0_PUBLIC_IP=$(shell cat $(CTRL_0_PUBLIC_IP_PATH))
 
-WORKER_0_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-0-ipv4Address
-WORKER_0_IP=$(shell cat $(WORKER_0_IP_PATH))
+WORKER_0_PUBLIC_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-0-public-ipv4Address
+WORKER_0_PUBLIC_IP=$(shell cat $(WORKER_0_PUBLIC_IP_PATH))
 
-WORKER_1_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-1-ipv4Address
-WORKER_1_IP=$(shell cat $(WORKER_1_IP_PATH))
+WORKER_1_PUBLIC_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-1-public-ipv4Address
+WORKER_1_PUBLIC_IP=$(shell cat $(WORKER_1_PUBLIC_IP_PATH))
 
-WORKER_2_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-2-ipv4Address
-WORKER_2_IP=$(shell cat $(WORKER_2_IP_PATH))
+WORKER_2_PUBLIC_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-2-public-ipv4Address
+WORKER_2_PUBLIC_IP=$(shell cat $(WORKER_2_PUBLIC_IP_PATH))
 
 ssh-add-keys:
 	@echo -e "=> Removing & re-adding ssh keys for all nodes to known_hosts..."
-	$(SSH_KEYGEN) -R $(CTRL_0_IP) || true
-	$(SSH_KEYSCAN) -H $(CTRL_0_IP) >> ~/.ssh/known_hosts
-	$(SSH_KEYGEN) -R $(WORKER_0_IP) || true
-	$(SSH_KEYSCAN) -H $(WORKER_0_IP) >> ~/.ssh/known_hosts
-	$(SSH_KEYGEN) -R $(WORKER_1_IP) || true
-	$(SSH_KEYSCAN) -H $(WORKER_1_IP) >> ~/.ssh/known_hosts
-	$(SSH_KEYGEN) -R $(WORKER_2_IP) || true
-	$(SSH_KEYSCAN) -H $(WORKER_2_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYGEN) -R $(CTRL_0_PUBLIC_IP) || true
+	$(SSH_KEYSCAN) -H $(CTRL_0_PUBLIC_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYGEN) -R $(WORKER_0_PUBLIC_IP) || true
+	$(SSH_KEYSCAN) -H $(WORKER_0_PUBLIC_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYGEN) -R $(WORKER_1_PUBLIC_IP) || true
+	$(SSH_KEYSCAN) -H $(WORKER_1_PUBLIC_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYGEN) -R $(WORKER_2_PUBLIC_IP) || true
+	$(SSH_KEYSCAN) -H $(WORKER_2_PUBLIC_IP) >> ~/.ssh/known_hosts
 
 ssh-remove-keys:
 	@echo -e "=> Adding ssh keys for all nodes to known_hosts..."
-	$(SSH_KEYSCAN) -H $(CTRL_0_IP) >> ~/.ssh/known_hosts
-	$(SSH_KEYSCAN) -H $(WORKER_0_IP) >> ~/.ssh/known_hosts
-	$(SSH_KEYSCAN) -H $(WORKER_1_IP) >> ~/.ssh/known_hosts
-	$(SSH_KEYSCAN) -H $(WORKER_2_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYSCAN) -H $(CTRL_0_PUBLIC_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYSCAN) -H $(WORKER_0_PUBLIC_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYSCAN) -H $(WORKER_1_PUBLIC_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYSCAN) -H $(WORKER_2_PUBLIC_IP) >> ~/.ssh/known_hosts
 
 ssh-ctrl0:
-	$(SSH) $(INSTANCE_USER)@$(CTRL_0_IP)
+	$(SSH) $(INSTANCE_USER)@$(CTRL_0_PUBLIC_IP)
 
 ssh-worker0:
-	$(SSH) $(INSTANCE_USER)@$(WORKER_0_IP)
+	$(SSH) $(INSTANCE_USER)@$(WORKER_0_PUBLIC_IP)
 
 ssh-worker1:
-	$(SSH) $(INSTANCE_USER)@$(WORKER_1_IP)
+	$(SSH) $(INSTANCE_USER)@$(WORKER_1_PUBLIC_IP)
 
 ssh-worker2:
-	$(SSH) $(INSTANCE_USER)@$(WORKER_2_IP)
+	$(SSH) $(INSTANCE_USER)@$(WORKER_2_PUBLIC_IP)

@@ -9,7 +9,12 @@ sed -i -E 's/#?GSSAPIAuthentication yes/GSSAPIAuthentication no/' /etc/ssh/sshd_
 sed -i -E 's/#?X11Forwarding yes/X11Forwarding no/' /etc/ssh/sshd_config
 
 # Newer versions of OpenSSH do not allow RSA keys
-echo "PubkeyAcceptedAlgorithms +ssh-rsa,ssh-rsa-cert-v01@openssh.com" > /etc/ssh/sshd_config
+echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config
+echo "AuthorizedKeysFile .ssh/authorized_keys" >> /etc/ssh/sshd_config
+echo "PubkeyAcceptedAlgorithms +ssh-rsa,ssh-rsa-cert-v01@openssh.com" >> /etc/ssh/sshd_config
+
+# Restart sshd
+systemctl resart sshd
 
 ## Fail2ban
 apt get install fail2ban
