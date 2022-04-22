@@ -125,7 +125,6 @@ const worker0 = new aws.ec2.Instance(
       Environment: environment,
     },
   },
-  { dependsOn: [ ctrl0 ] },
 );
 
 
@@ -153,7 +152,6 @@ const worker1 = new aws.ec2.Instance(
       Environment: environment,
     },
   },
-  { dependsOn: [ worker0 ] },
 );
 
 export const worker1PublicIPV4 = worker1.publicIp;
@@ -180,7 +178,6 @@ const worker2 = new aws.ec2.Instance(
       Environment: environment,
     },
   },
-  { dependsOn: [ worker1 ] },
 );
 
 export const worker2PublicIPV4 = worker2.publicIp;
