@@ -115,3 +115,6 @@ For more information on what runs in each target, see [`Makefile`](./Makefile).
 [aws]: https://aws.amazon.com
 [pulumi]: https://pulumi.com
 [pgbench]: https://www.postgresql.org/docs/current/pgbench.html
+[direnv]: https://direnv.net
+[rook]: https://rook.io/docs
+[git-crypt]: https://www.agwa.name/projects/git-crypt/
