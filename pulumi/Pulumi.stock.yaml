@@ -2,8 +2,5 @@ encryptionsalt: v1:1V1aX+VFeQA=:v1:30U/uPjC1+wh7AW0:1dsZtvlJ+LP08e7zmW59rTg0ou/m
 config:
   aws:region: us-west-2
   con:ec2-instance-type: t3.micro
-  con:ec2-ctrl0-az: us-west-2a
-  con:ec2-worker0-az: us-west-2a
-  con:ec2-worker1-az: us-west-2a
-  con:ec2-worker2-az: us-west-2a
+  con:ec2-az: us-west-2a
   con:ec2-ssh-key-name: con-experiment-ssh

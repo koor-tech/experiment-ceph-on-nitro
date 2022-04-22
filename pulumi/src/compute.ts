@@ -5,6 +5,8 @@ import * as aws from "@pulumi/aws";
 
 import {
   mainSubnetID,
+  mainSubnetAZ,
+
   allowDNSSecurityGroupID,
   allowETCDSecurityGroupID,
   allowSSHSecurityGroupID,
@@ -34,11 +36,6 @@ if (!clusterOutputDirectory) { throw new Error("ENV variable [CLUSTER_OUTPUT_DIR
 
 const ec2InstanceType = config.require("ec2-instance-type");
 const ec2SSHKeyName = config.require("ec2-ssh-key-name");
-
-const ec2Ctrl0AZ = config.require("ec2-ctrl0-az");
-const ec2Worker0AZ = config.require("ec2-worker0-az");
-const ec2Worker1AZ = config.require("ec2-worker1-az");
-const ec2Worker2AZ = config.require("ec2-worker2-az");
 
 /////////
 // AMI //
@@ -82,7 +79,7 @@ const ctrl0 = new aws.ec2.Instance(
   {
     ami: ami.then(ami => ami.id),
     instanceType: ec2InstanceType,
-    availabilityZone: ec2Ctrl0AZ,
+    availabilityZone: mainSubnetAZ,
     keyName: adminSSHKeyKeyName,
 
     subnetId: mainSubnetID,
@@ -117,7 +114,7 @@ const worker0 = new aws.ec2.Instance(
   {
     ami: ami.then(ami => ami.id),
     instanceType: ec2InstanceType,
-    availabilityZone: ec2Worker0AZ,
+    availabilityZone: mainSubnetAZ,
     keyName: adminSSHKeyKeyName,
 
     subnetId: mainSubnetID,
@@ -147,7 +144,7 @@ const worker1 = new aws.ec2.Instance(
   {
     ami: ami.then(ami => ami.id),
     instanceType: ec2InstanceType,
-    availabilityZone: ec2Worker1AZ,
+    availabilityZone: mainSubnetAZ,
     keyName: adminSSHKeyKeyName,
 
     subnetId: mainSubnetID,
@@ -176,7 +173,7 @@ const worker2 = new aws.ec2.Instance(
   {
     ami: ami.then(ami => ami.id),
     instanceType: ec2InstanceType,
-    availabilityZone: ec2Worker2AZ,
+    availabilityZone: mainSubnetAZ,
     keyName: adminSSHKeyKeyName,
 
     subnetId: mainSubnetID,

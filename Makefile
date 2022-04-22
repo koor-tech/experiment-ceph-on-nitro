@@ -169,14 +169,16 @@ deploy-rook:
 # Liveops #
 ###########
 
+INSTANCE_USER ?= ubuntu
+
 ssh-ctrl0:
-	$(SSH) ec2-user@$(CTRL_0_IP)
+	$(SSH) $(INSTANCE_USER)@$(CTRL_0_IP)
 
 ssh-worker0:
-	$(SSH) ec2-user@$(WORKER_0_IP)
+	$(SSH) $(INSTANCE_USER)@$(WORKER_0_IP)
 
 ssh-worker1:
-	$(SSH) ec2-user@$(WORKER_1_IP)
+	$(SSH) $(INSTANCE_USER)@$(WORKER_1_IP)
 
 ssh-worker2:
-	$(SSH) ec2-user@$(WORKER_2_IP)
+	$(SSH) $(INSTANCE_USER)@$(WORKER_2_IP)

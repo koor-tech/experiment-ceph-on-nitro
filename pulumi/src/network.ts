@@ -5,6 +5,9 @@ const environment = process.env.ENVIRONMENT;
 
 const commonName = `${environment}-main`;
 
+const config = new pulumi.Config();
+const ec2AvailabilityZone = config.require("ec2-az");
+
 /////////
 // VPC //
 /////////
@@ -40,8 +43,9 @@ const allowDNSSecurityGroup = new aws.ec2.SecurityGroup(
     ],
 
     tags: {
-      Name: commonName,
+      Name: "allow-dns",
     },
+
   },
 );
 
@@ -77,7 +81,7 @@ const allowSSHSecurityGroup = new aws.ec2.SecurityGroup(
     ],
 
     tags: {
-      Name: commonName,
+      Name: "allow-ssh",
     },
   },
 );
@@ -114,8 +118,9 @@ const allowETCDSecurityGroup = new aws.ec2.SecurityGroup(
     ],
 
     tags: {
-      Name: commonName,
+      Name: "allow-etcd",
     },
+
   },
 );
 
@@ -187,8 +192,9 @@ const allowK0SSecurityGroup = new aws.ec2.SecurityGroup(
     ],
 
     tags: {
-      Name: commonName,
+      Name: "allow-k0s",
     },
+
   },
 );
 
@@ -205,10 +211,37 @@ const mainSubnet = new aws.ec2.Subnet(
     vpcId: mainVPC.id,
     cidrBlock: "10.0.1.0/24",
     mapPublicIpOnLaunch: true,
+    availabilityZone: ec2AvailabilityZone,
+
     tags: {
-      Name: commonName,
+      Name: `${commonName}-subnet`,
+    },
+  },
+  { deleteBeforeReplace: true },
+);
+
+export const mainSubnetID = mainSubnet.id;
+export const mainSubnetAZ = mainSubnet.availabilityZone;
+
+///////////////////////
+// Internet Gateways //
+///////////////////////
+
+const mainIGW = new aws.ec2.InternetGateway(
+  `${commonName}-igw`,
+  {
+    vpcId: mainVPC.id,
+    tags: {
+      Name: `${commonName}-igw`,
     },
   },
 );
 
-export const mainSubnetID = mainSubnet.id;
+const route = new aws.ec2.Route(
+  `${commonName}-igw-route`,
+  {
+    routeTableId: mainVPC.mainRouteTableId,
+    destinationCidrBlock: "0.0.0.0/0",
+    gatewayId: mainIGW.id,
+  },
+);
