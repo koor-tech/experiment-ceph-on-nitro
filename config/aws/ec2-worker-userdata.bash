@@ -8,6 +8,9 @@ sed -i -E 's/#?KerberosAuthentication yes/KerberosAuthentication no/' /etc/ssh/s
 sed -i -E 's/#?GSSAPIAuthentication yes/GSSAPIAuthentication no/' /etc/ssh/sshd_config
 sed -i -E 's/#?X11Forwarding yes/X11Forwarding no/' /etc/ssh/sshd_config
 
+# Newer versions of OpenSSH do not allow RSA keys
+echo "PubkeyAcceptedAlgorithms +ssh-rsa,ssh-rsa-cert-v01@openssh.com" > /etc/ssh/sshd_config
+
 ## Fail2ban
 apt get install fail2ban
 

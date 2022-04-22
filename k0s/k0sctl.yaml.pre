@@ -4,6 +4,57 @@ kind: Cluster
 metadata:
   name: k0s-cluster
 spec:
+  k0s:
+    version: 1.23.5+k0s.0
+
+    config:
+      spec:
+        api:
+          externalAddress: ${CTRL_0_IP}
+          # address: 49.12.22.21 # TODO: replace with private internal-only address...? Don't really have one...
+          sans:
+            - ${CTRL_0_IP}
+          port: 6443
+          k0sApiPort: 9443
+          extraArgs:
+            # see: https://github.com/kubernetes/kubernetes/issues/74302
+            http2-max-streams-per-connection: "1000"
+
+        storage:
+          type: etcd
+
+        network:
+          podCIDR: 10.244.0.0/16
+          serviceCIDR: 10.96.0.0/12
+          provider: calico
+          calico:
+            mode: vxlan
+            vxlanPort: 4789
+            vxlanVNI: 4096
+            mtu: 1450
+            wireguard: true
+            flexVolumeDriverPath: /usr/libexec/k0s/kubelet-plugins/volume/exec/nodeagent~uds
+            withWindowsNodes: false
+            overlay: Always
+
+        podSecurityPolicy:
+          defaultPolicy: 00-k0s-privileged
+
+        installConfig:
+          users:
+            etcdUser: etcd
+            kineUser: kube-apiserver
+            konnectivityUser: konnectivity-server
+            kubeAPIserverUser: kube-apiserver
+            kubeSchedulerUser: kube-scheduler
+
+        konnectivity:
+          agentPort: 8132
+          adminPort: 8133
+
+        images:
+          default_pull_policy: IfNotPresent
+
   hosts:
 
     ##############
@@ -13,27 +64,28 @@ spec:
     - role: controller
       ssh:
         address: ${CTRL_0_IP} # envsubst
-        user: root
+        user: ubuntu
+        port: 22
         keyPath: ~/.ssh/id_rsa
 
     ################
     # Worker Nodes #
     ################
 
-    - role: worker
-      ssh:
-        address: ${WORKER_0_IP} # envsubst
-        user: root
-        keyPath: ~/.ssh/id_rsa
+    # - role: worker
+    #   ssh:
+    #     address: ${WORKER_0_IP} # envsubst
+    #     user: ubuntu
+    #     keyPath: ~/.ssh/id_rsa
 
-    - role: worker
-      ssh:
-        address: ${WORKER_1_IP} # envsubst
-        user: root
-        keyPath: ~/.ssh/id_rsa
+    # - role: worker
+    #   ssh:
+    #     address: ${WORKER_1_IP} # envsubst
+    #     user: ubuntu
+    #     keyPath: ~/.ssh/id_rsa
 
-    - role: worker
-      ssh:
-        address: ${WORKER_2_IP} # envsubst
-        user: root
-        keyPath: ~/.ssh/id_rsa
+    # - role: worker
+    #   ssh:
+    #     address: ${WORKER_2_IP} # envsubst
+    #     user: ubuntu
+    #     keyPath: ~/.ssh/id_rsa
