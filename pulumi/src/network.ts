@@ -22,18 +22,18 @@ export const mainVPCID = mainVPC.arn;
 /////////////////////
 
 // Allow DNS traffic
-const allowDNSSecurityGroup = new aws.ec2.securityGroup(
+const allowDNSSecurityGroup = new aws.ec2.SecurityGroup(
   "allow-dns",
   {
-    description: "Allow DNS traffic in/out from anywhere"
-    vpcId: mainVPC,
+    description: "Allow DNS traffic in/out from anywhere",
+    vpcId: mainVPC.id,
 
     egress: [
       {
         description: "outbound DNS to anywhere",
         fromPort: 53,
         toPort: 53,
-        protocol: "-1",
+        protocol: "udp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -48,18 +48,18 @@ const allowDNSSecurityGroup = new aws.ec2.securityGroup(
 export const allowDNSSecurityGroupID = allowDNSSecurityGroup.id;
 
 // SSH traffic
-const allowSSHSecurityGroup = new aws.ec2.securityGroup(
+const allowSSHSecurityGroup = new aws.ec2.SecurityGroup(
   "allow-ssh",
   {
-    description: "Allow SSH traffic in/out from anywhere"
-    vpcId: mainVPC,
+    description: "Allow SSH traffic in/out from anywhere",
+    vpcId: mainVPC.id,
 
     ingress: [
       {
         description: "inbound SSH from anywhere",
         fromPort: 22,
         toPort: 22,
-        protocol: "-1",
+        protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -70,7 +70,7 @@ const allowSSHSecurityGroup = new aws.ec2.securityGroup(
         description: "outbound SSH to anywhere",
         fromPort: 22,
         toPort: 22,
-        protocol: "-1",
+        protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -85,18 +85,18 @@ const allowSSHSecurityGroup = new aws.ec2.securityGroup(
 export const allowSSHSecurityGroupID = allowSSHSecurityGroup.id;
 
 // ETCD peer traffic
-const allowETCDSecurityGroup = new aws.ec2.securityGroup(
+const allowETCDSecurityGroup = new aws.ec2.SecurityGroup(
   "allow-etcd",
   {
-    description: "Allow ETCD traffic in/out from anywhere"
-    vpcId: mainVPC,
+    description: "Allow ETCD traffic in/out from anywhere",
+    vpcId: mainVPC.id,
 
     ingress: [
       {
         description: "inbound ETCD from anywhere",
         fromPort: 2380,
         toPort: 2380,
-        protocol: "-1",
+        protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -107,7 +107,7 @@ const allowETCDSecurityGroup = new aws.ec2.securityGroup(
         description: "outbound ETCD to anywhere",
         fromPort: 2380,
         toPort: 2380,
-        protocol: "-1",
+        protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -122,18 +122,18 @@ const allowETCDSecurityGroup = new aws.ec2.securityGroup(
 export const allowETCDSecurityGroupID = allowETCDSecurityGroup.id;
 
 // Allow k0s traffic
-const allowK0SSecurityGroup = new aws.ec2.securityGroup(
+const allowK0SSecurityGroup = new aws.ec2.SecurityGroup(
   "allow-k0s",
   {
-    description: "Allow K0S traffic in/out from anywhere"
-    vpcId: mainVPC,
+    description: "Allow K0S traffic in/out from anywhere",
+    vpcId: mainVPC.id,
 
     ingress: [
       {
         description: "inbound k0s apiserver from anywhere",
         fromPort: 6443,
         toPort: 6443,
-        protocol: "-1",
+        protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -142,7 +142,7 @@ const allowK0SSecurityGroup = new aws.ec2.securityGroup(
         description: "inbound k0s join protocol from anywhere",
         fromPort: 9443,
         toPort: 9443,
-        protocol: "-1",
+        protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -151,7 +151,7 @@ const allowK0SSecurityGroup = new aws.ec2.securityGroup(
         description: "inbound k0s konnectivity from anywhere",
         fromPort: 8132,
         toPort: 8132,
-        protocol: "-1",
+        protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -162,7 +162,7 @@ const allowK0SSecurityGroup = new aws.ec2.securityGroup(
         description: "outbound k0s apiserver from anywhere",
         fromPort: 6443,
         toPort: 6443,
-        protocol: "-1",
+        protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -171,7 +171,7 @@ const allowK0SSecurityGroup = new aws.ec2.securityGroup(
         description: "outbound k0s join protocol from anywhere",
         fromPort: 9443,
         toPort: 9443,
-        protocol: "-1",
+        protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -180,7 +180,7 @@ const allowK0SSecurityGroup = new aws.ec2.securityGroup(
         description: "outbound k0s konnectivity from anywhere",
         fromPort: 8132,
         toPort: 8132,
-        protocol: "-1",
+        protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -198,16 +198,17 @@ export const allowK0SSecurityGroupID = allowK0SSecurityGroup.id;
 // Subnets //
 /////////////
 
-// Main VPC Subnet
-const mainVPCSubnet = new aws.ec2.VpcSubnet(
+// Main Subnet
+const mainSubnet = new aws.ec2.Subnet(
   `${commonName}-subnet`,
   {
     vpcId: mainVPC.id,
     cidrBlock: "10.0.1.0/24",
+    mapPublicIpOnLaunch: true,
     tags: {
       Name: commonName,
     },
   },
 );
 
-export const mainVPCSubnetID = mainVPCSubnet.id;
+export const mainSubnetID = mainSubnet.id;

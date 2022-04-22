@@ -4,13 +4,12 @@ import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 
 import {
-  allowSSHSecurityGroupID,
-  mainVPCSubnetID,
+  mainSubnetID,
   allowDNSSecurityGroupID,
   allowETCDSecurityGroupID,
-  allowSSHSecurityGroupIDID,
+  allowSSHSecurityGroupID,
   allowK0SSecurityGroupID,
-} from "./network.ts";
+} from "./network";
 
 ///////////////////////////
 // Setup & Configuration //
@@ -86,7 +85,7 @@ const ctrl0 = new aws.ec2.Instance(
     availabilityZone: ec2Ctrl0AZ,
     keyName: adminSSHKeyKeyName,
 
-    subnetId: mainVPCSubnetID,
+    subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
       allowDNSSecurityGroupID,
       allowSSHSecurityGroupID,
@@ -121,7 +120,7 @@ const worker0 = new aws.ec2.Instance(
     availabilityZone: ec2Worker0AZ,
     keyName: adminSSHKeyKeyName,
 
-    subnetId: mainVPCSubnetID,
+    subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
       allowDNSSecurityGroupID,
       allowSSHSecurityGroupID,
@@ -137,7 +136,9 @@ const worker0 = new aws.ec2.Instance(
       Environment: environment,
     },
   },
+  { dependsOn: [ ctrl0 ] },
 );
+
 
 export const worker0PublicIPV4 = worker0.publicIp;
 
@@ -149,7 +150,7 @@ const worker1 = new aws.ec2.Instance(
     availabilityZone: ec2Worker1AZ,
     keyName: adminSSHKeyKeyName,
 
-    subnetId: mainVPCSubnetID,
+    subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
       allowDNSSecurityGroupID,
       allowSSHSecurityGroupID,
@@ -165,6 +166,7 @@ const worker1 = new aws.ec2.Instance(
       Environment: environment,
     },
   },
+  { dependsOn: [ worker0 ] },
 );
 
 export const worker1PublicIPV4 = worker1.publicIp;
@@ -177,7 +179,7 @@ const worker2 = new aws.ec2.Instance(
     availabilityZone: ec2Worker2AZ,
     keyName: adminSSHKeyKeyName,
 
-    subnetId: mainVPCSubnetID,
+    subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
       allowDNSSecurityGroupID,
       allowSSHSecurityGroupID,
@@ -193,6 +195,7 @@ const worker2 = new aws.ec2.Instance(
       Environment: environment,
     },
   },
+  { dependsOn: [ worker1 ] },
 );
 
 export const worker2PublicIPV4 = worker2.publicIp;

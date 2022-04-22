@@ -3,7 +3,7 @@ config:
   aws:region: us-west-2
   con:ec2-instance-type: t3.micro
   con:ec2-ctrl0-az: us-west-2a
-  con:ec2-worker0-az: us-west-2b
-  con:ec2-worker1-az: us-west-2c
-  con:ec2-worker2-az: us-west-2d
+  con:ec2-worker0-az: us-west-2a
+  con:ec2-worker1-az: us-west-2a
+  con:ec2-worker2-az: us-west-2a
   con:ec2-ssh-key-name: con-experiment-ssh
