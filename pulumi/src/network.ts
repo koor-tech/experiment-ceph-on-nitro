@@ -222,6 +222,15 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
+        description: "inbound k0s apiserver from anywhere",
+        fromPort: 6443,
+        toPort: 6443,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
         description: "outbound k0s join protocol from anywhere",
         fromPort: 9443,
         toPort: 9443,
