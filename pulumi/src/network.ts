@@ -224,7 +224,7 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         toPort: 6443,
         protocol: "tcp",
         securityGroups: [
-          ctrlSecurityGroup
+          ctrlSecurityGroup.id
         ],
       },
 
@@ -234,7 +234,7 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         toPort: 9443,
         protocol: "tcp",
         securityGroups: [
-          ctrlSecurityGroup
+          ctrlSecurityGroup.id
         ],
       },
 
@@ -244,7 +244,7 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         toPort: 8132,
         protocol: "tcp",
         securityGroups: [
-          ctrlSecurityGroup
+          ctrlSecurityGroup.id
         ],
       },
 
