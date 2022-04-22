@@ -42,6 +42,15 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
+        description: "inbound DNS from anywhere",
+        fromPort: 53,
+        toPort: 53,
+        protocol: "udp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
         description: "inbound ETCD from anywhere",
         fromPort: 2380,
         toPort: 2380,
@@ -59,6 +68,15 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
+        description: "inbound k0s apiserver from anywhere",
+        fromPort: 6443,
+        toPort: 6443,
+        protocol: "udp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
         description: "inbound k0s join protocol from anywhere",
         fromPort: 9443,
         toPort: 9443,
@@ -70,6 +88,33 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
         description: "inbound k0s konnectivity from anywhere",
         fromPort: 8132,
         toPort: 8132,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound HTTP to anywhere",
+        fromPort: 80,
+        toPort: 80,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound HTTPS to anywhere",
+        fromPort: 443,
+        toPort: 443,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound kubelet to other workers",
+        fromPort: 10250,
+        toPort: 10250,
         protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
@@ -132,6 +177,24 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
+      {
+        description: "outbound kubelet to other workers",
+        fromPort: 10250,
+        toPort: 10250,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "inbound k0s konnectivity from anywhere",
+        fromPort: 8132,
+        toPort: 8132,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
     ],
 
     tags: {
@@ -151,6 +214,15 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
     vpcId: mainVPC.id,
 
     ingress: [
+      {
+        description: "inbound DNS from anywhere",
+        fromPort: 53,
+        toPort: 53,
+        protocol: "udp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
       {
         description: "incoming SSH from anywhere",
         fromPort: 22,
@@ -176,6 +248,32 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "inbound calico to other workers",
+        fromPort: 4789,
+        toPort: 4789,
+        protocol: "tcp",
+        self: true,
+      },
+
+      {
+        description: "inbound kubelet to other workers",
+        fromPort: 10250,
+        toPort: 10250,
+        protocol: "tcp",
+        self: true,
+      },
+
+      {
+        description: "outbound k0s konnectivity from anywhere",
+        fromPort: 8132,
+        toPort: 8132,
+        protocol: "tcp",
+        securityGroups: [
+          ctrlSecurityGroup.id
+        ],
       },
 
     ],
@@ -219,23 +317,30 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "inbound k0s apiserver from anywhere",
+        description: "outbound k0s apiserver from anywhere",
         fromPort: 6443,
         toPort: 6443,
         protocol: "tcp",
-        securityGroups: [
-          ctrlSecurityGroup.id
-        ],
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
       {
-        description: "outbound k0s join protocol from anywhere",
+        description: "outbound k0s apiserver from anywhere (UDP)",
+        fromPort: 6443,
+        toPort: 6443,
+        protocol: "udp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound k0s join protocol to anywhere",
         fromPort: 9443,
         toPort: 9443,
         protocol: "tcp",
-        securityGroups: [
-          ctrlSecurityGroup.id
-        ],
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
       {
@@ -246,6 +351,22 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         securityGroups: [
           ctrlSecurityGroup.id
         ],
+      },
+
+      {
+        description: "outbound calico to other workers",
+        fromPort: 4789,
+        toPort: 4789,
+        protocol: "tcp",
+        self: true,
+      },
+
+      {
+        description: "outbound kubelet to other workers",
+        fromPort: 10250,
+        toPort: 10250,
+        protocol: "tcp",
+        self: true,
       },
 
     ],
