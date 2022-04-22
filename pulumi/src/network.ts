@@ -46,8 +46,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 2380,
         toPort: 2380,
         protocol: "tcp",
-        cidrBlocks: [ "0.0.0.0/0" ],
-        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+        self: true
       },
 
       {
@@ -64,8 +63,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 9443,
         toPort: 9443,
         protocol: "tcp",
-        cidrBlocks: [ "0.0.0.0/0" ],
-        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+        self: true,
       },
 
       {
@@ -122,8 +120,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 2380,
         toPort: 2380,
         protocol: "tcp",
-        cidrBlocks: [ "0.0.0.0/0" ],
-        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+        self: true,
       },
 
       {
@@ -226,8 +223,9 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 6443,
         toPort: 6443,
         protocol: "tcp",
-        cidrBlocks: [ "0.0.0.0/0" ],
-        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+        securityGroups: [
+          ctrlSecurityGroup
+        ],
       },
 
       {
@@ -235,8 +233,9 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 9443,
         toPort: 9443,
         protocol: "tcp",
-        cidrBlocks: [ "0.0.0.0/0" ],
-        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+        securityGroups: [
+          ctrlSecurityGroup
+        ],
       },
 
       {
@@ -244,8 +243,9 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 8132,
         toPort: 8132,
         protocol: "tcp",
-        cidrBlocks: [ "0.0.0.0/0" ],
-        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+        securityGroups: [
+          ctrlSecurityGroup
+        ],
       },
 
     ],
