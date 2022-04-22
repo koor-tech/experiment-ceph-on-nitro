@@ -9,6 +9,9 @@ KUBIE ?= kubie
 K0SCTL ?= k0sctl
 ENVSUBST ?= envsubst
 
+# stock | nitro
+ENVIRONMENT ?= stock
+
 SECRETS_DIR ?= ../secrets
 CLUSTER_SECRET_DIR ?= $(SECRETS_DIR)/k8s/cluster/$(ENVIRONMENT)
 
@@ -33,7 +36,7 @@ K0SCTL_YAML_TEMPLATE_PATH ?= k0sctl.yaml.pre
 K0SCTL_GENERATED_DIR_PATH ?= generated
 K0SCTL_YAML_PATH ?= $(K0SCTL_GENERATED_DIR_PATH)/k0sctl.yaml
 
-KUBECONFIG_PATH ?= $(SECRETS_DIR)/k8s/cluster/admin.kubeconfig
+KUBECONFIG_PATH ?= $(CLUSTER_SECRET_DIR)/admin.kubeconfig
 
 ## Create the generated folder
 generated-folder:
@@ -42,7 +45,7 @@ generated-folder:
 ## Generate the k0sctl YAML file
 generate: generated-folder
 	@echo -e "=> Generating k0sctl.yaml based on template @ [$(K0SCTL_YAML_TEMPLATE_PATH)]"
-	export CTRL_0_PUBLIC_IP=$(CTRL_0_PUBLIC_IP) \
+	@export CTRL_0_PUBLIC_IP=$(CTRL_0_PUBLIC_IP) \
 		&& export CTRL_0_PRIVATE_IP=$(CTRL_0_PRIVATE_IP) \
 		&& export WORKER_0_PUBLIC_IP=$(WORKER_0_PUBLIC_IP) \
 		&& export WORKER_1_PUBLIC_IP=$(WORKER_1_PUBLIC_IP) \
@@ -60,8 +63,8 @@ cluster: ensure-tool-k0sctl generate
 	$(K0SCTL) apply -c $(K0SCTL_YAML_PATH)
 
 ## Output the kubeconfig
-kubeconfig: ensure-tool-k0sctl generate
-	$(K0SCTL) kubeconfig > $(KUBECONFIG_PATH)
+kubeconfig: ensure-tool-k0sctl
+	$(K0SCTL) kubeconfig -c $(K0SCTL_YAML_PATH) > $(KUBECONFIG_PATH)
 
 ## Enter kubie shell environment
 kubie:

@@ -33,7 +33,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
 
     ingress: [
       {
-        description: "inbound SSH from anywhere",
+        description: "incoming SSH from anywhere",
         fromPort: 22,
         toPort: 22,
         protocol: "tcp",
@@ -42,7 +42,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "inbound DNS from anywhere",
+        description: "incoming DNS from anywhere",
         fromPort: 53,
         toPort: 53,
         protocol: "udp",
@@ -51,7 +51,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "inbound ETCD from anywhere",
+        description: "incoming ETCD from anywhere",
         fromPort: 2380,
         toPort: 2380,
         protocol: "tcp",
@@ -59,7 +59,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "inbound k0s apiserver from anywhere",
+        description: "incoming k0s apiserver from anywhere",
         fromPort: 6443,
         toPort: 6443,
         protocol: "tcp",
@@ -68,7 +68,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "inbound k0s apiserver from anywhere",
+        description: "incoming k0s apiserver from anywhere",
         fromPort: 6443,
         toPort: 6443,
         protocol: "udp",
@@ -77,15 +77,16 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "inbound k0s join protocol from anywhere",
+        description: "incoming k0s join protocol from anywhere",
         fromPort: 9443,
         toPort: 9443,
         protocol: "tcp",
-        self: true,
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
       {
-        description: "inbound k0s konnectivity from anywhere",
+        description: "incoming k0s konnectivity from anywhere",
         fromPort: 8132,
         toPort: 8132,
         protocol: "tcp",
@@ -94,7 +95,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "outbound HTTP to anywhere",
+        description: "incoming HTTP from anywhere",
         fromPort: 80,
         toPort: 80,
         protocol: "tcp",
@@ -165,6 +166,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 2380,
         toPort: 2380,
         protocol: "tcp",
+        // Only other controllers should be attempting to sync ETCD
         self: true,
       },
 
@@ -187,7 +189,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "inbound k0s konnectivity from anywhere",
+        description: "incoming k0s konnectivity from anywhere",
         fromPort: 8132,
         toPort: 8132,
         protocol: "tcp",
@@ -215,7 +217,7 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
 
     ingress: [
       {
-        description: "inbound DNS from anywhere",
+        description: "incoming DNS from anywhere",
         fromPort: 53,
         toPort: 53,
         protocol: "udp",
@@ -251,29 +253,30 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "inbound calico to other workers",
+        description: "incoming calico to other workers",
         fromPort: 4789,
         toPort: 4789,
         protocol: "tcp",
+        // Only other workers should be attempting to sync calico VXLAN overlay
         self: true,
       },
 
       {
-        description: "inbound kubelet to other workers",
+        description: "incoming kubelet to other workers",
         fromPort: 10250,
         toPort: 10250,
         protocol: "tcp",
-        self: true,
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
       {
-        description: "outbound k0s konnectivity from anywhere",
+        description: "inbound k0s konnectivity from anywhere",
         fromPort: 8132,
         toPort: 8132,
         protocol: "tcp",
-        securityGroups: [
-          ctrlSecurityGroup.id
-        ],
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
     ],
@@ -348,9 +351,8 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 8132,
         toPort: 8132,
         protocol: "tcp",
-        securityGroups: [
-          ctrlSecurityGroup.id
-        ],
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
       {
