@@ -24,38 +24,11 @@ export const mainVPCID = mainVPC.arn;
 // Security Groups //
 /////////////////////
 
-// Allow DNS traffic
-const allowDNSSecurityGroup = new aws.ec2.SecurityGroup(
-  "allow-dns",
+// Security group for controllers
+const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
+  "k0s-ctrl",
   {
-    description: "Allow DNS traffic in/out from anywhere",
-    vpcId: mainVPC.id,
-
-    egress: [
-      {
-        description: "outbound DNS to anywhere",
-        fromPort: 53,
-        toPort: 53,
-        protocol: "udp",
-        cidrBlocks: [ "0.0.0.0/0" ],
-        ipv6CidrBlocks: [ "0.0.0.0/0" ],
-      },
-    ],
-
-    tags: {
-      Name: "allow-dns",
-    },
-
-  },
-);
-
-export const allowDNSSecurityGroupID = allowDNSSecurityGroup.id;
-
-// SSH traffic
-const allowSSHSecurityGroup = new aws.ec2.SecurityGroup(
-  "allow-ssh",
-  {
-    description: "Allow SSH traffic in/out from anywhere",
+    description: "Ingress/Egress rules for k0s controllers",
     vpcId: mainVPC.id,
 
     ingress: [
@@ -67,35 +40,7 @@ const allowSSHSecurityGroup = new aws.ec2.SecurityGroup(
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
-    ],
 
-    egress: [
-      {
-        description: "outbound SSH to anywhere",
-        fromPort: 22,
-        toPort: 22,
-        protocol: "tcp",
-        cidrBlocks: [ "0.0.0.0/0" ],
-        ipv6CidrBlocks: [ "0.0.0.0/0" ],
-      },
-    ],
-
-    tags: {
-      Name: "allow-ssh",
-    },
-  },
-);
-
-export const allowSSHSecurityGroupID = allowSSHSecurityGroup.id;
-
-// ETCD peer traffic
-const allowETCDSecurityGroup = new aws.ec2.SecurityGroup(
-  "allow-etcd",
-  {
-    description: "Allow ETCD traffic in/out from anywhere",
-    vpcId: mainVPC.id,
-
-    ingress: [
       {
         description: "inbound ETCD from anywhere",
         fromPort: 2380,
@@ -104,36 +49,7 @@ const allowETCDSecurityGroup = new aws.ec2.SecurityGroup(
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
-    ],
 
-    egress: [
-      {
-        description: "outbound ETCD to anywhere",
-        fromPort: 2380,
-        toPort: 2380,
-        protocol: "tcp",
-        cidrBlocks: [ "0.0.0.0/0" ],
-        ipv6CidrBlocks: [ "0.0.0.0/0" ],
-      },
-    ],
-
-    tags: {
-      Name: "allow-etcd",
-    },
-
-  },
-);
-
-export const allowETCDSecurityGroupID = allowETCDSecurityGroup.id;
-
-// Allow k0s traffic
-const allowK0SSecurityGroup = new aws.ec2.SecurityGroup(
-  "allow-k0s",
-  {
-    description: "Allow K0S traffic in/out from anywhere",
-    vpcId: mainVPC.id,
-
-    ingress: [
       {
         description: "inbound k0s apiserver from anywhere",
         fromPort: 6443,
@@ -160,13 +76,146 @@ const allowK0SSecurityGroup = new aws.ec2.SecurityGroup(
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
+
     ],
 
     egress: [
+
       {
-        description: "outbound k0s apiserver from anywhere",
-        fromPort: 6443,
-        toPort: 6443,
+        description: "outbound DNS to anywhere",
+        fromPort: 53,
+        toPort: 53,
+        protocol: "udp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound HTTP to anywhere",
+        fromPort: 80,
+        toPort: 80,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound HTTPS to anywhere",
+        fromPort: 443,
+        toPort: 443,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound SSH to anywhere",
+        fromPort: 22,
+        toPort: 22,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound ETCD to anywhere",
+        fromPort: 2380,
+        toPort: 2380,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound k0s join protocol from anywhere",
+        fromPort: 9443,
+        toPort: 9443,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+    ],
+
+    tags: {
+      Name: "k0s-ctrl",
+    },
+
+  },
+);
+
+export const ctrlSecurityGroupID = ctrlSecurityGroup.id;
+
+// Security group for controllers
+const workerSecurityGroup = new aws.ec2.SecurityGroup(
+  "k0s-worker",
+  {
+    description: "Ingress/Egress rules for k0s workers",
+    vpcId: mainVPC.id,
+
+    ingress: [
+      {
+        description: "incoming SSH from anywhere",
+        fromPort: 22,
+        toPort: 22,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "incoming HTTP from anywhere",
+        fromPort: 80,
+        toPort: 80,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "incoming HTTPS from anywhere",
+        fromPort: 443,
+        toPort: 443,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+    ],
+
+    egress: [
+
+      {
+        description: "outbound DNS to anywhere",
+        fromPort: 53,
+        toPort: 53,
+        protocol: "udp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound HTTP to anywhere",
+        fromPort: 80,
+        toPort: 80,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound HTTPS to anywhere",
+        fromPort: 443,
+        toPort: 443,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound SSH to anywhere",
+        fromPort: 22,
+        toPort: 22,
         protocol: "tcp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
@@ -189,16 +238,17 @@ const allowK0SSecurityGroup = new aws.ec2.SecurityGroup(
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
+
     ],
 
     tags: {
-      Name: "allow-k0s",
+      Name: "k0s-worker",
     },
 
   },
 );
 
-export const allowK0SSecurityGroupID = allowK0SSecurityGroup.id;
+export const workerSecurityGroupID = workerSecurityGroup.id;
 
 /////////////
 // Subnets //

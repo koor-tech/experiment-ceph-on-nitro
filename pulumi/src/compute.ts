@@ -7,10 +7,8 @@ import {
   mainSubnetID,
   mainSubnetAZ,
 
-  allowDNSSecurityGroupID,
-  allowETCDSecurityGroupID,
-  allowSSHSecurityGroupID,
-  allowK0SSecurityGroupID,
+  ctrlSecurityGroupID,
+  workerSecurityGroupID,
 } from "./network";
 
 ///////////////////////////
@@ -86,10 +84,7 @@ const ctrl0 = new aws.ec2.Instance(
 
     subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
-      allowDNSSecurityGroupID,
-      allowSSHSecurityGroupID,
-      allowETCDSecurityGroupID,
-      allowK0SSecurityGroupID,
+      ctrlSecurityGroupID,
     ],
 
     userData: fs.readFileSync(ctrlUserDataAbsolutePath).toString(),
@@ -103,9 +98,6 @@ const ctrl0 = new aws.ec2.Instance(
 );
 
 export const ctrl0PublicIPV4 = ctrl0.publicIp;
-
-// Write out
-
 
 //////////////////
 // Worker nodes //
@@ -121,10 +113,7 @@ const worker0 = new aws.ec2.Instance(
 
     subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
-      allowDNSSecurityGroupID,
-      allowSSHSecurityGroupID,
-      allowETCDSecurityGroupID,
-      allowK0SSecurityGroupID,
+      workerSecurityGroupID,
     ],
 
     userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
@@ -151,10 +140,7 @@ const worker1 = new aws.ec2.Instance(
 
     subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
-      allowDNSSecurityGroupID,
-      allowSSHSecurityGroupID,
-      allowETCDSecurityGroupID,
-      allowK0SSecurityGroupID,
+      workerSecurityGroupID,
     ],
 
     userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
@@ -180,10 +166,7 @@ const worker2 = new aws.ec2.Instance(
 
     subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
-      allowDNSSecurityGroupID,
-      allowSSHSecurityGroupID,
-      allowETCDSecurityGroupID,
-      allowK0SSecurityGroupID,
+      workerSecurityGroupID,
     ],
 
     userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
