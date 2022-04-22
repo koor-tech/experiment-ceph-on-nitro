@@ -6,9 +6,11 @@
 				check-ENV-ENVIRONMENT \
 				check-tool-kubectl check-tool-pulumi \
 				k0s-generated-folder generate-k0s-yaml \
-				ssh-add-keys ssh-ctrl0 ssh-worker0 ssh-worker1 ssh-worker2
+				ssh-add-keys ssh-ctrl0 ssh-worker0 ssh-worker1 ssh-worker2 \
+				kubie
 
 DOCKER ?= docker
+KUBIE ?= kubie
 KUBECTL ?= kubectl
 ENVSUBST ?= envsubst
 K0SCTL ?= k0sctl
@@ -161,6 +163,8 @@ WORKER_1_PUBLIC_IP=$(shell cat $(WORKER_1_PUBLIC_IP_PATH))
 WORKER_2_PUBLIC_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-2-public-ipv4Address
 WORKER_2_PUBLIC_IP=$(shell cat $(WORKER_2_PUBLIC_IP_PATH))
 
+KUBECONFIG_PATH ?= $(CLUSTER_SECRET_DIR)/admin.kubeconfig
+
 ssh-add-keys:
 	@echo -e "=> Removing & re-adding ssh keys for all nodes to known_hosts..."
 	$(SSH_KEYGEN) -R $(CTRL_0_PUBLIC_IP) || true
@@ -190,3 +194,11 @@ ssh-worker1:
 
 ssh-worker2:
 	$(SSH) $(INSTANCE_USER)@$(WORKER_2_PUBLIC_IP)
+
+## Enter kubie shell environment
+kubie:
+ifeq (,$(PRE_KUBIE_WORKING_DIR))
+	$(KUBIE) ctx -f $(KUBECONFIG_PATH)
+else
+	cd $(PRE_KUBIE_WORKING_DIR) && $(KUBIE) ctx -f $(KUBECONFIG_PATH)
+endif

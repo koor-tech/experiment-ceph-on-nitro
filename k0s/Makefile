@@ -1,9 +1,11 @@
 .PHONY: all generated-folder generate \
 				ensure-tool-k0s \
-				cluster kubeconfig
+				cluster kubeconfig \
+				kubie
 
 all: cluster kubeconfig
 
+KUBIE ?= kubie
 K0SCTL ?= k0sctl
 ENVSUBST ?= envsubst
 
@@ -60,3 +62,11 @@ cluster: ensure-tool-k0sctl generate
 ## Output the kubeconfig
 kubeconfig: ensure-tool-k0sctl generate
 	$(K0SCTL) kubeconfig > $(KUBECONFIG_PATH)
+
+## Enter kubie shell environment
+kubie:
+ifeq (,$(PRE_KUBIE_WORKING_DIR))
+	$(KUBIE) ctx -f $(KUBECONFIG_PATH)
+else
+	cd $(PRE_KUBIE_WORKING_DIR) && $(KUBIE) ctx -f $(KUBECONFIG_PATH)
+endif
