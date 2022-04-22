@@ -42,12 +42,14 @@ const ec2SSHKeyName = config.require("ec2-ssh-key-name");
 /////////
 
 // https://www.pulumi.com/registry/packages/aws/api-docs/ec2/instance/
+// https://cloud-images.ubuntu.com/locator/ec2/
+// Ubuntu 22.04 Jammy instance (ami-0ee8244746ec5d6d4)
 const ami = aws.ec2.getAmi({
   mostRecent: true,
   filters: [
     {
       name: "name",
-      values: ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"],
+      values: ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20220420"],
     },
     {
       name: "virtualization-type",

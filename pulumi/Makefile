@@ -41,7 +41,6 @@ PULUMI_SECRET_DIR ?= secrets/pulumi
 PULUMI_AWS_ACCESS_KEY_ID_PATH ?= $(PULUMI_SECRET_DIR)/aws-access-key-id.secret
 PULUMI_AWS_SECRET_ACCESS_KEY_PATH ?= $(PULUMI_SECRET_DIR)/aws-secret-access-key.secret
 
-
 #####################
 # Top level targets #
 #####################

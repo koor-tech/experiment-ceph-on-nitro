@@ -6,7 +6,7 @@
 				check-ENV-ENVIRONMENT \
 				check-tool-kubectl check-tool-pulumi \
 				k0s-generated-folder generate-k0s-yaml \
-				ssh-ctrl0 ssh-worker0 ssh-worker1 ssh-worker2
+				ssh-add-keys ssh-ctrl0 ssh-worker0 ssh-worker1 ssh-worker2
 
 DOCKER ?= docker
 KUBECTL ?= kubectl
@@ -14,6 +14,8 @@ ENVSUBST ?= envsubst
 K0SCTL ?= k0sctl
 PULUMI ?= pulumi
 SSH ?= ssh
+SSH_KEYSCAN ?= ssh-keyscan
+SSH_KEYGEN ?= ssh-keygen
 
 # stock | nitro
 ENVIRONMENT ?= stock
@@ -85,7 +87,7 @@ PULUMI_ENCRYPTION_SECRET_PATH ?= $(PULUMI_SECRET_DIR)/encryption.secret
 
 AWS_SECRET_DIR ?= ./secrets/aws/$(ENVIRONMENT)
 
-CLUSTER_SECRET_DIR ?= ./secrets/cluster/$(ENVIRONMENT)
+CLUSTER_SECRET_DIR ?= ./secrets/k8s/cluster/$(ENVIRONMENT)
 
 ## List of secrets that can be randomly generated
 RANDOMIZED_SECRET_PATHS ?= $(PULUMI_ENCRYPTION_SECRET_PATH)
@@ -121,44 +123,20 @@ clean-secrets-generated:
 # Infrastructure #
 ##################
 
-CTRL_0_IP_PATH ?= ./secrets/k8s/cluster/$(ENVIRONMENT)/ctrl-0-ipv4Address
-CTRL_0_IP=$(shell cat $(CTRL_0_IP_PATH))
-
-WORKER_0_IP_PATH ?= ./secrets/k8s/cluster/$(ENVIRONMENT)/worker-0-ipv4Address
-WORKER_0_IP=$(shell cat $(WORKER_0_IP_PATH))
-
-WORKER_1_IP_PATH ?= ./secrets/k8s/cluster/$(ENVIRONMENT)/worker-1-ipv4Address
-WORKER_1_IP=$(shell cat $(WORKER_1_IP_PATH))
-
-WORKER_2_IP_PATH ?= ./secrets/k8s/cluster/$(ENVIRONMENT)/worker-2-ipv4Address
-WORKER_2_IP=$(shell cat $(WORKER_2_IP_PATH))
-
-K0SCTL_YAML_TEMPLATE_PATH ?= k0s/k0sctl.yaml.pre
-K0SCTL_GENERATED_DIR_PATH ?= k0s/generated
-K0SCTL_YAML_PATH ?= $(K0SCTL_GENERATED_DIR_PATH)/k0sctl.yaml
-
-deploy-infra: deploy-pulumi
+deploy-infra: deploy-pulumi ssh-add-keys
 
 deploy-pulumi:
 	@echo -e "=> Deploying pulumi..."
 	@$(MAKE) -C pulumi
 
-k0s-generated-folder:
-	mkdir -p $(K0SCTL_GENERATED_DIR_PATH)
-
-## Generate the k0sctl YAML file
-generate-k0s-yaml: k0s-generated-folder
-	@echo -e "=> Generating k0sctl.yaml based on template @ [$(K0SCTL_YAML_TEMPLATE_PATH)]"
-	export CTRL_0_IP=$(CTRL_0_IP); \
-	export WORKER_0_IP=$(WORKER_0_IP); \
-		&& export WORKER_1_IP=$(WORKER_1_IP); \
-		&& export WORKER_2_IP=$(WORKER_2_IP); \
-		&& cat $(K0SCTL_YAML_TEMPLATE_PATH) | $(ENVSUBST) > $(K0SCTL_YAML_PATH)
+##############
+# Kubernetes #
+##############
 
 ## Install k0s, quick & dirty
-deploy-k8s: generate-k0s-yaml
-	@echo -e "=> Running k0sctl..."
-	$(K0SCTL) -c $(K0SCTL_YAML_PATH)
+deploy-k8s:
+	@echo -e "=> Deploying k8s..."
+	$(MAKE) -C k0s
 
 ## Deploy Rook
 deploy-rook:
@@ -170,6 +148,36 @@ deploy-rook:
 ###########
 
 INSTANCE_USER ?= ubuntu
+
+CTRL_0_IP_PATH ?= $(CLUSTER_SECRET_DIR)/ctrl-0-ipv4Address
+CTRL_0_IP=$(shell cat $(CTRL_0_IP_PATH))
+
+WORKER_0_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-0-ipv4Address
+WORKER_0_IP=$(shell cat $(WORKER_0_IP_PATH))
+
+WORKER_1_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-1-ipv4Address
+WORKER_1_IP=$(shell cat $(WORKER_1_IP_PATH))
+
+WORKER_2_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-2-ipv4Address
+WORKER_2_IP=$(shell cat $(WORKER_2_IP_PATH))
+
+ssh-add-keys:
+	@echo -e "=> Removing & re-adding ssh keys for all nodes to known_hosts..."
+	$(SSH_KEYGEN) -R $(CTRL_0_IP) || true
+	$(SSH_KEYSCAN) -H $(CTRL_0_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYGEN) -R $(WORKER_0_IP) || true
+	$(SSH_KEYSCAN) -H $(WORKER_0_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYGEN) -R $(WORKER_1_IP) || true
+	$(SSH_KEYSCAN) -H $(WORKER_1_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYGEN) -R $(WORKER_2_IP) || true
+	$(SSH_KEYSCAN) -H $(WORKER_2_IP) >> ~/.ssh/known_hosts
+
+ssh-remove-keys:
+	@echo -e "=> Adding ssh keys for all nodes to known_hosts..."
+	$(SSH_KEYSCAN) -H $(CTRL_0_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYSCAN) -H $(WORKER_0_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYSCAN) -H $(WORKER_1_IP) >> ~/.ssh/known_hosts
+	$(SSH_KEYSCAN) -H $(WORKER_2_IP) >> ~/.ssh/known_hosts
 
 ssh-ctrl0:
 	$(SSH) $(INSTANCE_USER)@$(CTRL_0_IP)
