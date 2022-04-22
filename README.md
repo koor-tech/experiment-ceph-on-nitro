@@ -75,6 +75,16 @@ export PULUMI_CONFIG_PASSPHRASE=$(cat secrets/pulumi/$ENVIRONMENT/encryption.sec
 # This SSH key will be used to enable access to the machines
 export SSH_PUB_KEY_PATH=~/.ssh/id_rsa
 export SSH_PUB_KEY_ABS_PATH=$(realpath $SSH_PUB_KEY_PATH)
+
+# Relative path to the userdata that will be installed on controllers
+export CONTROLLER_USERDATA_PATH=$(realpath ./config/aws/ec2-controller-userdata.bash)
+
+# Relative path to the userdata that will be installed on nodes
+export WORKER_USERDATA_PATH=$(realpath ./config/aws/ec2-worker-userdata.bash)
+
+# Relative path to the folder which will hold the cluster information (ex. ip addresses) after creation
+## NOTE: this must be created by running `make setup`
+export CLUSTER_OUTPUT_DIR_PATH=$(realpath ./secrets/k8s/cluster/$ENVIRONMENT)
 ```
 
 Save the contents of the above example to `.envrc` (*not* `.env`).

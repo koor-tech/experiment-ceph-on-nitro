@@ -5,13 +5,15 @@
 				test test-k8s-pgbench \
 				check-ENV-ENVIRONMENT \
 				check-tool-kubectl check-tool-pulumi \
-				k0s-generated-folder generate-k0s-yaml
+				k0s-generated-folder generate-k0s-yaml \
+				ssh-ctrl0 ssh-worker0 ssh-worker1 ssh-worker2
 
 DOCKER ?= docker
 KUBECTL ?= kubectl
 ENVSUBST ?= envsubst
 K0SCTL ?= k0sctl
 PULUMI ?= pulumi
+SSH ?= ssh
 
 # stock | nitro
 ENVIRONMENT ?= stock
@@ -25,6 +27,11 @@ K8S_NAMESPACE ?= con-$(ENVIRONMENT)
 # (you shouldn't need to use this, but just in case!)
 SSH_PUB_KEY_PATH ?= ~/.ssh/id_rsa.pub
 SSH_PUB_KEY_ABS_PATH ?= $(realpath $(SSH_PUB_KEY_PATH))
+
+CONTROLLER_USERDATA_PATH ?= $(realpath ./config/aws/ec2-controller-userdata.bash)
+WORKER_USERDATA_PATH ?= $(realpath ./config/aws/ec2-worker-userdata.bash)
+
+CLUSTER_OUTPUT_DIR_PATH ?= $(realpath ./secrets/k8s/cluster/$(ENVIRONMENT))
 
 # Where the k8s cluster will be stored
 K8S_CLUSTER_SECRETS_FOLDER_PATH = ./secrets/k8s/cluster
@@ -76,6 +83,10 @@ endif
 PULUMI_SECRET_DIR ?= ./secrets/pulumi/$(ENVIRONMENT)
 PULUMI_ENCRYPTION_SECRET_PATH ?= $(PULUMI_SECRET_DIR)/encryption.secret
 
+AWS_SECRET_DIR ?= ./secrets/aws/$(ENVIRONMENT)
+
+CLUSTER_SECRET_DIR ?= ./secrets/cluster/$(ENVIRONMENT)
+
 ## List of secrets that can be randomly generated
 RANDOMIZED_SECRET_PATHS ?= $(PULUMI_ENCRYPTION_SECRET_PATH)
 
@@ -84,6 +95,8 @@ secrets: secret-folders secrets-generated
 secret-folders: check-ENV-ENVIRONMENT
 # Cross environment secrets
 	@mkdir -p $(PULUMI_SECRET_DIR)
+	@mkdir -p $(AWS_SECRET_DIR)
+	@mkdir -p $(CLUSTER_SECRET_DIR)
 
 secret-gen-random-alpha:
 	@cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | tr -d \\n
@@ -108,9 +121,17 @@ clean-secrets-generated:
 # Infrastructure #
 ##################
 
-NODE_0_IP_PATH ?= ./secrets/k8s/cluster/node.0.ip-address.secret
-NODE_1_IP_PATH ?= ./secrets/k8s/cluster/node.1.ip-address.secret
-NODE_2_IP_PATH ?= ./secrets/k8s/cluster/node.2.ip-address.secret
+CTRL_0_IP_PATH ?= ./secrets/k8s/cluster/$(ENVIRONMENT)/ctrl-0-ipv4Address
+CTRL_0_IP=$(shell cat $(CTRL_0_IP_PATH))
+
+WORKER_0_IP_PATH ?= ./secrets/k8s/cluster/$(ENVIRONMENT)/worker-0-ipv4Address
+WORKER_0_IP=$(shell cat $(WORKER_0_IP_PATH))
+
+WORKER_1_IP_PATH ?= ./secrets/k8s/cluster/$(ENVIRONMENT)/worker-1-ipv4Address
+WORKER_1_IP=$(shell cat $(WORKER_1_IP_PATH))
+
+WORKER_2_IP_PATH ?= ./secrets/k8s/cluster/$(ENVIRONMENT)/worker-2-ipv4Address
+WORKER_2_IP=$(shell cat $(WORKER_2_IP_PATH))
 
 K0SCTL_YAML_TEMPLATE_PATH ?= k0s/k0sctl.yaml.pre
 K0SCTL_GENERATED_DIR_PATH ?= k0s/generated
@@ -126,14 +147,12 @@ k0s-generated-folder:
 	mkdir -p $(K0SCTL_GENERATED_DIR_PATH)
 
 ## Generate the k0sctl YAML file
-generate-k0s-yaml: NODE_0_IP=$(read $(NODE_0_IP_EXPECTED_PATH))
-generate-k0s-yaml: NODE_1_IP=$(read $(NODE_1_IP_EXPECTED_PATH))
-generate-k0s-yaml: NODE_2_IP=$(read $(NODE_2_IP_EXPECTED_PATH))
 generate-k0s-yaml: k0s-generated-folder
 	@echo -e "=> Generating k0sctl.yaml based on template @ [$(K0SCTL_YAML_TEMPLATE_PATH)]"
-	export NODE_0_IP=$(NODE_0_IP); \
-		&& export NODE_1_IP=$(NODE_1_IP); \
-		&& export NODE_2_IP=$(NODE_2_IP); \
+	export CTRL_0_IP=$(CTRL_0_IP); \
+	export WORKER_0_IP=$(WORKER_0_IP); \
+		&& export WORKER_1_IP=$(WORKER_1_IP); \
+		&& export WORKER_2_IP=$(WORKER_2_IP); \
 		&& cat $(K0SCTL_YAML_TEMPLATE_PATH) | $(ENVSUBST) > $(K0SCTL_YAML_PATH)
 
 ## Install k0s, quick & dirty
@@ -145,3 +164,19 @@ deploy-k8s: generate-k0s-yaml
 deploy-rook:
 	@echo -e "=> Deploying rook to the cluster..."
 	$(MAKE) -C k8s
+
+###########
+# Liveops #
+###########
+
+ssh-ctrl0:
+	$(SSH) ec2-user@$(CTRL_0_IP)
+
+ssh-worker0:
+	$(SSH) ec2-user@$(WORKER_0_IP)
+
+ssh-worker1:
+	$(SSH) ec2-user@$(WORKER_1_IP)
+
+ssh-worker2:
+	$(SSH) ec2-user@$(WORKER_2_IP)

@@ -3,4 +3,12 @@ import * as aws from "@pulumi/aws";
 
 const environment = process.env.ENVIRONMENT;
 
-// TODO: Build VPC
+// Main VPC
+const mainVPC = new aws.ec2.Vpc(
+  "main",
+  { cidrBlock: "10.0.0.0/16" },
+);
+
+export const mainVPCARN = mainVPC.arn;
+export const mainVPCID = mainVPC.arn;
+

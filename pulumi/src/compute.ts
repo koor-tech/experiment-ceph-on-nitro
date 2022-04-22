@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import * as path from "path";
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 
@@ -16,9 +17,22 @@ if (!environment) { throw new Error("ENV variable [ENVIRONMENT] missing"); }
 const sshKeyAbsolutePath = process.env.SSH_PUB_KEY_ABS_PATH;
 if (!sshKeyAbsolutePath) { throw new Error("ENV variable [SSH_PUB_KEY_ABS_PATH] missing"); }
 
+const ctrlUserDataAbsolutePath = process.env.CONTROLLER_USERDATA_PATH;
+if (!ctrlUserDataAbsolutePath) { throw new Error("ENV variable [CONTROLLER_USERDATA_PATH] missing"); }
+
+const workerUserDataAbsolutePath = process.env.WORKER_USERDATA_PATH;
+if (!workerUserDataAbsolutePath) { throw new Error("ENV variable [WORKER_USERDATA_PATH] missing"); }
+
+const clusterOutputDirectory = process.env.CLUSTER_OUTPUT_DIR_PATH;
+if (!clusterOutputDirectory) { throw new Error("ENV variable [CLUSTER_OUTPUT_DIR_PATH] missing"); }
+
 const ec2InstanceType = config.require("ec2-instance-type");
-const ec2Node0AZ = config.require("ec2-node0-az");
 const ec2SSHKeyName = config.require("ec2-ssh-key-name");
+
+const ec2Ctrl0AZ = config.require("ec2-ctrl0-az");
+const ec2Worker0AZ = config.require("ec2-worker0-az");
+const ec2Worker1AZ = config.require("ec2-worker1-az");
+const ec2Worker2AZ = config.require("ec2-worker2-az");
 
 /////////
 // AMI //
@@ -53,20 +67,128 @@ const adminSSHKey = new aws.ec2.KeyPair(
 
 export const adminSSHKeyKeyName = adminSSHKey.keyName;
 
-////////////
-// Node 0 //
-////////////
+//////////////////
+// Controller 0 //
+//////////////////
 
-const node0 = new aws.ec2.Instance(
-  "node-0",
+const ctrl0 = new aws.ec2.Instance(
+  `${environment}-ctrl-0`,
   {
     ami: ami.then(ami => ami.id),
     instanceType: ec2InstanceType,
-    availabilityZone: ec2Node0AZ,
+    availabilityZone: ec2Ctrl0AZ,
     keyName: adminSSHKeyKeyName,
+
+    userData: fs.readFileSync(ctrlUserDataAbsolutePath).toString(),
+
     tags: {
-      NodeId: "0",
+      Name: `${environment}-ctrl-0`,
+      NodeId: "ctrl-0",
       Environment: environment,
     },
   },
 );
+
+export const ctrl0PublicIPV4 = ctrl0.publicIp;
+
+// Write out
+
+
+//////////////////
+// Worker nodes //
+//////////////////
+
+const worker0 = new aws.ec2.Instance(
+  `${environment}-worker-0`,
+  {
+    ami: ami.then(ami => ami.id),
+    instanceType: ec2InstanceType,
+    availabilityZone: ec2Worker0AZ,
+    keyName: adminSSHKeyKeyName,
+
+    userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
+
+    tags: {
+      Name: `${environment}-worker-0`,
+      WorkerId: "worker-0",
+      Environment: environment,
+    },
+  },
+);
+
+export const worker0PublicIPV4 = worker0.publicIp;
+
+const worker1 = new aws.ec2.Instance(
+  `${environment}-worker-1`,
+  {
+    ami: ami.then(ami => ami.id),
+    instanceType: ec2InstanceType,
+    availabilityZone: ec2Worker1AZ,
+    keyName: adminSSHKeyKeyName,
+
+    userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
+
+    tags: {
+      Name: `${environment}-worker-1`,
+      WorkerId: "worker-1",
+      Environment: environment,
+    },
+  },
+);
+
+export const worker1PublicIPV4 = worker1.publicIp;
+
+const worker2 = new aws.ec2.Instance(
+  `${environment}-worker-2`,
+  {
+    ami: ami.then(ami => ami.id),
+    instanceType: ec2InstanceType,
+    availabilityZone: ec2Worker2AZ,
+    keyName: adminSSHKeyKeyName,
+
+    userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
+
+    tags: {
+      Name: `${environment}-worker-2`,
+      WorkerId: "worker-2",
+      Environment: environment,
+    },
+  },
+);
+
+export const worker2PublicIPV4 = worker2.publicIp;
+
+//////////////////
+// File Outputs //
+//////////////////
+
+// Write the load balancer IP for the controllers to disk to disk
+pulumi
+  .all([ ctrl0PublicIPV4, worker0PublicIPV4, worker1PublicIPV4, worker2PublicIPV4 ])
+  .apply(([ ctrlIP, worker0IP, worker1IP, worker2IP ]) => {
+    let filePath;
+    const outputDir = clusterOutputDirectory;
+
+    // Create the cluster output dir if it's not present
+    fs.mkdirSync(outputDir, { recursive: true });
+
+    // Write ipv4 for ctrl 0
+    filePath = path.join(outputDir, "ctrl-0-ipv4Address")
+    fs.writeFileSync(filePath, ctrlIP);
+    pulumi.log.info(`successfuly wrote controller ctrl-0 IPv4 address @ [${filePath}]`);
+
+    // Write ipv4 for worker 0
+    filePath = path.join(outputDir, "worker-0-ipv4Address")
+    fs.writeFileSync(filePath, worker0IP);
+    pulumi.log.info(`successfuly wrote worker 0 IPv4 address @ [${filePath}]`);
+
+    // Write ipv4 for worker 1
+    filePath = path.join(outputDir, "worker-1-ipv4Address")
+    fs.writeFileSync(filePath, worker1IP);
+    pulumi.log.info(`successfuly wrote worker 1 IPv4 address @ [${filePath}]`);
+
+    // Write ipv4 for worker 2
+    filePath = path.join(outputDir, "worker-2-ipv4Address")
+    fs.writeFileSync(filePath, worker2IP);
+    pulumi.log.info(`successfuly wrote worker 2 IPv4 address @ [${filePath}]`);
+  });

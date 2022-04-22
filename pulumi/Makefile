@@ -1,4 +1,6 @@
-.PHONY: all install build deploy destroy refresh \
+.PHONY: all install build \
+				deploy \
+				destroy refresh \
 				build-watch \
 				check-ENV-ENVIRONMENT
 
@@ -12,6 +14,11 @@ PULUMI ?= pulumi
 ENVIRONMENT ?= stock
 
 FORCE ?= no
+
+CONTROLLER_USERDATA_PATH ?= $(realpath ../config/aws/ec2-controller-userdata.bash)
+WORKER_USERDATA_PATH ?= $(realpath ../config/aws/ec2-worker-userdata.bash)
+
+CLUSTER_OUTPUT_DIR_PATH ?= $(realpath ../secrets/k8s/cluster/$(ENVIRONMENT))
 
 all: setup install build deploy
 
