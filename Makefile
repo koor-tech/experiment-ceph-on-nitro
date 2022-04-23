@@ -1,7 +1,10 @@
 .PHONY: all \
 				setup \
 				secrets secret-folders secrets-generated clean-secrets-generated \
-				deploy deploy-infra deploy-k8s deploy-rook \
+				deploy deploy-infra \
+				destroy destroy-infra \
+				deploy-pulumi destroy-pulumi \
+				deploy-k8s deploy-rook \
 				test test-k8s-pgbench \
 				check-ENV-ENVIRONMENT \
 				check-tool-kubectl check-tool-pulumi \
@@ -53,6 +56,7 @@ all: setup deploy test
 setup: secrets
 
 deploy: deploy-infra deploy-k8s deploy-rook
+destroy: destroy-infra
 
 test: test-k8s-pgbench
 
@@ -126,10 +130,15 @@ clean-secrets-generated:
 ##################
 
 deploy-infra: deploy-pulumi ssh-add-keys
+destroy-infra: destroy-pulumi
 
 deploy-pulumi:
-	@echo -e "=> Deploying pulumi..."
+	@echo -e "=> Deploying infrastructure w/ pulumi..."
 	@$(MAKE) -C pulumi FORCE=yes
+
+destroy-pulumi:
+	@echo -e "=> Destroying infrastructure w/ pulumi..."
+	@$(MAKE) -C pulumi destroy
 
 ##############
 # Kubernetes #
