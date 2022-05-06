@@ -29,8 +29,8 @@ if (!ctrlUserDataAbsolutePath) { throw new Error("ENV variable [CONTROLLER_USERD
 const workerUserDataAbsolutePath = process.env.WORKER_USERDATA_PATH;
 if (!workerUserDataAbsolutePath) { throw new Error("ENV variable [WORKER_USERDATA_PATH] missing"); }
 
-const clusterOutputDirectory = process.env.CLUSTER_OUTPUT_DIR_PATH;
-if (!clusterOutputDirectory) { throw new Error("ENV variable [CLUSTER_OUTPUT_DIR_PATH] missing"); }
+let clusterOutputDirectory = process.env.CLUSTER_OUTPUT_BASE_DIR_PATH;
+if (!clusterOutputDirectory) { throw new Error("ENV variable [CLUSTER_OUTPUT_BASE_DIR_PATH] missing"); }
 
 const ec2InstanceType = config.require("ec2-instance-type");
 const ec2SSHKeyName = config.require("ec2-ssh-key-name");
@@ -61,11 +61,18 @@ const ami = aws.ec2.getAmi({
 // SSH //
 /////////
 
+// Only necessary when the SSH key is missing/doesn't exist
+// see: https://github.com/pulumi/pulumi/issues/3388
+
+// Normally, during operation the keypairs are added and removed
+// if you run stock, *then* run nitro, you need to comment the section below.
+
 const adminSSHKey = new aws.ec2.KeyPair(
   "admin-ssh-key",
   {
     keyName: ec2SSHKeyName,
-    publicKey: fs.readFileSync(sshKeyAbsolutePath).toString() },
+    publicKey: fs.readFileSync(sshKeyAbsolutePath).toString()
+  },
 );
 
 export const adminSSHKeyKeyName = adminSSHKey.keyName;
@@ -80,7 +87,7 @@ const ctrl0 = new aws.ec2.Instance(
     ami: ami.then(ami => ami.id),
     instanceType: ec2InstanceType,
     availabilityZone: mainSubnetAZ,
-    keyName: adminSSHKeyKeyName,
+    keyName: ec2SSHKeyName,
 
     subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
@@ -110,12 +117,26 @@ const worker0 = new aws.ec2.Instance(
     ami: ami.then(ami => ami.id),
     instanceType: ec2InstanceType,
     availabilityZone: mainSubnetAZ,
-    keyName: adminSSHKeyKeyName,
+    keyName: ec2SSHKeyName,
 
     subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
       workerSecurityGroupID,
     ],
+
+    // Storage
+    rootBlockDevice: {
+      volumeSize: 32, // GiB
+      volumeType: "gp3",
+    },
+
+    ebsBlockDevices: [
+      // We need more than 170GB to get more than 128MiB/s
+      // over 334 and we get 250MiB/s regardless of burst credits
+      { deviceName: "/dev/sdf", volumeSize: 350, volumeType: "gp3" },
+    ],
+
+    ebsOptimized: true,
 
     userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
 
@@ -137,11 +158,23 @@ const worker1 = new aws.ec2.Instance(
     ami: ami.then(ami => ami.id),
     instanceType: ec2InstanceType,
     availabilityZone: mainSubnetAZ,
-    keyName: adminSSHKeyKeyName,
+    keyName: ec2SSHKeyName,
 
     subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
       workerSecurityGroupID,
+    ],
+
+    // Storage
+    rootBlockDevice: {
+      volumeSize: 32, // GiB
+      volumeType: "gp3",
+    },
+
+    ebsBlockDevices: [
+      // We need more than 170GB to get more than 128MiB/s
+      // over 334 and we get 250MiB/s regardless of burst credits
+      { deviceName: "/dev/sdf", volumeSize: 350, volumeType: "gp3" },
     ],
 
     userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
@@ -163,11 +196,23 @@ const worker2 = new aws.ec2.Instance(
     ami: ami.then(ami => ami.id),
     instanceType: ec2InstanceType,
     availabilityZone: mainSubnetAZ,
-    keyName: adminSSHKeyKeyName,
+    keyName: ec2SSHKeyName,
 
     subnetId: mainSubnetID,
     vpcSecurityGroupIds: [
       workerSecurityGroupID,
+    ],
+
+    // Storage
+    rootBlockDevice: {
+      volumeSize: 32, // GiB
+      volumeType: "gp3",
+    },
+
+    ebsBlockDevices: [
+      // We need more than 170GB to get more than 128MiB/s
+      // over 334 and we get 250MiB/s regardless of burst credits
+      { deviceName: "/dev/sdf", volumeSize: 350, volumeType: "gp3" },
     ],
 
     userData: fs.readFileSync(workerUserDataAbsolutePath).toString(),
@@ -213,10 +258,15 @@ pulumi
     ] = args;
 
     let filePath;
-    const outputDir = clusterOutputDirectory;
+
+    // Build the output directory
+    if (!clusterOutputDirectory) { throw new Error("Missing cluster output base directory"); }
+    if (!environment) { throw new Error("Missing cluster output base directory"); }
+    const outputDir = path.join(clusterOutputDirectory, environment);
 
     // Create the cluster output dir if it's not present
     fs.mkdirSync(outputDir, { recursive: true });
+    pulumi.log.info(`writing cluster information to [${outputDir}]`);
 
     // Write ipv4 for ctrl 0
     fs.writeFileSync(path.join(outputDir, "ctrl-0-public-ipv4Address"), ctrlPublicIP);

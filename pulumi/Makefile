@@ -11,6 +11,8 @@ YARN ?= yarn
 TSC ?= $(NPX) tsc
 PULUMI ?= pulumi
 
+# nitro | stock
+# NOTE: this is normally influenced by parent make
 ENVIRONMENT ?= stock
 
 FORCE ?= no
@@ -18,7 +20,7 @@ FORCE ?= no
 CONTROLLER_USERDATA_PATH ?= $(realpath ../config/aws/ec2-controller-userdata.bash)
 WORKER_USERDATA_PATH ?= $(realpath ../config/aws/ec2-worker-userdata.bash)
 
-CLUSTER_OUTPUT_DIR_PATH ?= $(realpath ../secrets/k8s/cluster/$(ENVIRONMENT))
+CLUSTER_OUTPUT_BASE_DIR_PATH ?= $(realpath ../secrets/k8s/cluster)
 
 all: setup install build deploy
 
@@ -76,8 +78,13 @@ else
 endif
 
 destroy:
+ifeq ("yes","$(FORCE)")
+	@echo -e "==> Removing deployment (force)..."
+	$(PULUMI) destroy --stack=$(ENVIRONMENT) --skip-preview --refresh --yes
+else
 	@echo -e "==> Removing deployment..."
 	$(PULUMI) destroy --stack=$(ENVIRONMENT) --refresh
+endif
 
 refresh:
 	@echo -e "==> Refreshing stack..."

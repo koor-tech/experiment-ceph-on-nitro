@@ -1,0 +1,6 @@
+encryptionsalt: v1:uAT/zNCwuHE=:v1:cm/L1da9k9oqbMPe:M6o2lJQUzFBdrNXIj6YXKAIX6QGdRQ==
+config:
+  aws:region: us-west-2
+  con:ec2-az: us-west-2a
+  con:ec2-instance-type: m5.xlarge
+  con:ec2-ssh-key-name: con-experiment-ssh

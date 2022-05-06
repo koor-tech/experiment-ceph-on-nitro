@@ -1,0 +1,68 @@
+# see: https://github.com/longhorn/dbench
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pgbench
+spec:
+  backoffLimit: 0
+  # activeDeadlineSeconds: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      initContainers:
+        # Wait for postgres to show up
+        - name: wait
+          image: busybox:latest
+          imagePullPolicy: IfNotPresent
+          command: ['sh', '-c', 'until nc -vz ${POD_NAME}.${POD_NAMESPACE} 5432; do echo "Waiting for postgres..."; sleep 3; done;']
+          env:
+            - name: POD_NAME
+              value: postgres
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+        # Initialize pg bench database
+        - name: init
+          image: postgres:14.1-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - pgbench
+            - --initialize
+            - --foreign-keys
+            - --scale=1000
+          env:
+            - name: PGHOST
+              value: postgres
+            - name: PGUSER
+              value: postgres
+            - name: PGPASSWORD
+              value: postgres
+
+      containers:
+        - name: pgbench
+          image: postgres:14.1-alpine
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 2
+              memory: 8Gi
+            limits:
+              cpu: 2
+              memory: 8Gi
+          command:
+            - pgbench
+            - --report-latencies
+            - --jobs=2
+            - --client=20
+            - --time=300
+          env:
+            - name: PGHOST
+              value: postgres
+            - name: PGUSER
+              value: postgres
+            - name: PGPASSWORD
+              value: postgres

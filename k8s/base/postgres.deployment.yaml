@@ -1,0 +1,79 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: postgres
+  template:
+    metadata:
+      labels:
+        component: postgres
+    spec:
+      automountServiceAccountToken: false
+
+      containers:
+        # Postgres
+        - name: pg
+          image: postgres:14.2-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          resources:
+            requests:
+              cpu: 1
+              memory: "4Gi"
+              hugepages-2Mi: 64Mi
+            limits:
+              cpu: 1
+              memory: "4Gi"
+              hugepages-2Mi: 64Mi
+          # Probes
+          livenessProbe:
+            failureThreshold: 3
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          args:
+            - -c
+            - config_file=/etc/postgresql/postgresql.conf
+          # ENV
+          env:
+            - name: POSTGRES_DB
+              value: postgres
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: PGDATA
+              value: /var/lib/postgresql/data
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres
+            - mountPath: /etc/postgresql/postgresql.conf
+              name: pg-config
+              subPath: postgresql.conf
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: pg
+        - name: pg-config
+          configMap:
+            name: pg

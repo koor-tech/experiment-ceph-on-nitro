@@ -1,0 +1,23 @@
+namespace: rook-ceph
+
+bases:
+  - ../../base
+
+commonLabels:
+  environment: stock
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+patchesStrategicMerge:
+  - rook-ceph.cluster.yaml
+
+# configmapGenerator:
+#   - name: rook-config
+#     files:
+#       - ../../../config/path/to/file
+
+# secretGenerator:
+#   - name: rook-secrets
+#     files:
+#       - ../../../secrets/path/to/file

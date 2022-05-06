@@ -23,6 +23,7 @@ Then, we're going to do the same thing again, but the second time will be ⚡sup
 
 As Koor specialies in [Rook][rook] installations, we're going to get a helping hand from all the giants we can:
 
+- [`make`][gnu-make] (at least version 4.2)
 - [Rook][rook]
 - [k0s][k0s]
 - [Kubernetes][k8s]
@@ -38,10 +39,13 @@ To run this experiment you'll need to do the following:
 2. Install [`git-crypt`][git-crypt] and set up a `secrets` directory (`git-crypt init && mkdir secrets`)
 2. Setup your [CLI AWS credentials][aws-credentials], use a profile named `con-experiment`.
 3. Fill out and use the example `.env` at the bottom of this file
+4. Install [`kubectl`][kubectl]
+5. Install [`kustomize`][kustomize] (`bases` in `kustomization.yaml` doesn't work properly with `kubectl kustomize`)
+5. Install [`kubie`][kubie]
 
 ### Run setup
 
-To check some dependencies and run some automated setup, run teh setup target:
+To check some dependencies and run some automated setup, run the setup target:
 
 ```console
 $ make setup
@@ -73,7 +77,7 @@ export AWS_SHARED_CREDENTIALS_FILE=$(realpath ~/.aws/credentials)
 export PULUMI_CONFIG_PASSPHRASE=$(cat secrets/pulumi/$ENVIRONMENT/encryption.secret)
 
 # This SSH key will be used to enable access to the machines
-export SSH_PUB_KEY_PATH=~/.ssh/id_rsa
+export SSH_PUB_KEY_PATH=~/.ssh/id_rsa.pub
 export SSH_PUB_KEY_ABS_PATH=$(realpath $SSH_PUB_KEY_PATH)
 
 # Relative path to the userdata that will be installed on controllers
@@ -84,24 +88,45 @@ export WORKER_USERDATA_PATH=$(realpath ./config/aws/ec2-worker-userdata.bash)
 
 # Relative path to the folder which will hold the cluster information (ex. ip addresses) after creation
 ## NOTE: this must be created by running `make setup`
-export CLUSTER_OUTPUT_DIR_PATH=$(realpath ./secrets/k8s/cluster/$ENVIRONMENT)
+## NOTE: Below this folder will be subfolders for every environment
+export CLUSTER_OUTPUT_BASE_DIR_PATH=$(realpath ./secrets/k8s/cluster)
 ```
 
 Save the contents of the above example to `.envrc` (*not* `.env`).
 
 ## Running the experiment
 
-To run the experiment:
+### Set up the infrastructure
+
+To set up the infrastructure (in this example, for `stock`, i.e. non-nitro environment):
 
 ```console
-$ make
+$ ENVIRONMENT=stock make
 ```
 
-A little more explicitly:
+This command should:
+
+- Create EC2 instances (one controller node, 3 worker nodes)
+- Install k0s on them (and resultingly kubernetes)
+- Extract the admin kubeconfig
+- Install Rook on them
+- Run the tests
+
+Test output should be generated under `output/tests`.
+
+### How To: Interact with the cluster
+
+If you'd like to interact wiht the cluster after it's been setup:
 
 ```console
-$ make deploy test
+$ make kubie
 ```
+
+This will drop you into a shell that is configured such that `kubectl` commands will go to the cluster.
+
+## General tips
+
+### Using Make
 
 For more information on what runs in each target, see [`Makefile`](./Makefile).
 
@@ -119,3 +144,7 @@ For more information on what runs in each target, see [`Makefile`](./Makefile).
 [rook]: https://rook.io/docs
 [git-crypt]: https://www.agwa.name/projects/git-crypt/
 [ceph]: https://docs.ceph.com
+[kubectl]: https://kubernetes.io/docs/reference/kubectl
+[kubie]: https://github.com/sbstp/kubie
+[kustomize]: https://github.com/kubernetes-sigs/kustomize
+[gnu-make]: https://www.gnu.org/software/make
