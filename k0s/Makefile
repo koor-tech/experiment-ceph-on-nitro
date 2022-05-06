@@ -16,19 +16,16 @@ SECRETS_DIR ?= ../secrets
 CLUSTER_SECRET_DIR ?= $(SECRETS_DIR)/k8s/cluster/$(ENVIRONMENT)
 
 CTRL_0_PUBLIC_IP_PATH ?= $(CLUSTER_SECRET_DIR)/ctrl-0-public-ipv4Address
-CTRL_0_PUBLIC_IP=$(shell cat $(CTRL_0_PUBLIC_IP_PATH))
-
-CTRL_0_PRIVATE_IP_PATH ?= $(CLUSTER_SECRET_DIR)/ctrl-0-private-ipv4Address
-CTRL_0_PRIVATE_IP=$(shell cat $(CTRL_0_PRIVATE_IP_PATH))
+CTRL_0_PUBLIC_IP=$(file < $(CTRL_0_PUBLIC_IP_PATH))
 
 WORKER_0_PUBLIC_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-0-public-ipv4Address
-WORKER_0_PUBLIC_IP=$(shell cat $(WORKER_0_PUBLIC_IP_PATH))
+WORKER_0_PUBLIC_IP=$(file < $(WORKER_0_PUBLIC_IP_PATH))
 
 WORKER_1_PUBLIC_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-1-public-ipv4Address
-WORKER_1_PUBLIC_IP=$(shell cat $(WORKER_1_PUBLIC_IP_PATH))
+WORKER_1_PUBLIC_IP=$(file < $(WORKER_1_PUBLIC_IP_PATH))
 
 WORKER_2_PUBLIC_IP_PATH ?= $(CLUSTER_SECRET_DIR)/worker-2-public-ipv4Address
-WORKER_2_PUBLIC_IP=$(shell cat $(WORKER_2_PUBLIC_IP_PATH))
+WORKER_2_PUBLIC_IP=$(file < $(WORKER_2_PUBLIC_IP_PATH))
 
 GENERATED_FOLDER_PATH ?= generated
 
@@ -60,7 +57,11 @@ endif
 
 ## Create the cluster with k0sctl
 cluster: ensure-tool-k0sctl generate
-	$(K0SCTL) apply -c $(K0SCTL_YAML_PATH)
+	@sh -c 'until nc -vz ${CTRL_0_PUBLIC_IP} 22; do echo "Waiting for ctrl0..."; sleep 3; done;'
+	@sh -c 'until nc -vz ${WORKER_0_PUBLIC_IP} 22; do echo "Waiting for worker0..."; sleep 3; done;'
+	@sh -c 'until nc -vz ${WORKER_1_PUBLIC_IP} 22; do echo "Waiting for worker1..."; sleep 3; done;'
+	@sh -c 'until nc -vz ${WORKER_2_PUBLIC_IP} 22; do echo "Waiting for worker2..."; sleep 3; done;'
+	@sh -c 'until $(K0SCTL) apply -c $(K0SCTL_YAML_PATH); do echo "retrying k0s apply..."; sleep 3; done;'
 
 ## Output the kubeconfig
 kubeconfig: ensure-tool-k0sctl

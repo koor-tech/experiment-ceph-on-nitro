@@ -1,0 +1,25 @@
+namespace: rook-ceph
+
+generatorOptions:
+  disableNameSuffixHash: false
+
+resources:
+  # Rook Requirements
+  - crds.yaml
+  - common.yaml
+  - operator.yaml
+
+  # Cluster
+  - rook-ceph.cluster.yaml
+
+  # Storage classes
+  - nfs.storageclass.yaml
+  - cephfs.storageclass.yaml
+  - rbd.storageclass.yaml
+
+  # PG
+  - pg.configmap.yaml
+  - pg.pvc.yaml
+  - postgres.deployment.yaml
+  - postgres.svc.yaml
+  - pgbench.job.yaml

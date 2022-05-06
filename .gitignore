@@ -14,3 +14,6 @@ secrets/*
 /pulumi/bin/
 
 # Misc
+
+# generated content (ex. kustomize)
+generated

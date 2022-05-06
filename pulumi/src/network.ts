@@ -55,7 +55,9 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 2380,
         toPort: 2380,
         protocol: "tcp",
-        self: true
+        // Only other controllers should be attempting to sync ETCD
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
       {
@@ -104,7 +106,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "outbound HTTPS to anywhere",
+        description: "inbound HTTPS from anywhere",
         fromPort: 443,
         toPort: 443,
         protocol: "tcp",
@@ -113,7 +115,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "outbound kubelet to other workers",
+        description: "inbound kubelet to other workers",
         fromPort: 10250,
         toPort: 10250,
         protocol: "tcp",
@@ -167,11 +169,12 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
         toPort: 2380,
         protocol: "tcp",
         // Only other controllers should be attempting to sync ETCD
-        self: true,
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
       {
-        description: "outbound k0s join protocol from anywhere",
+        description: "outbound k0s join protocol to anywhere",
         fromPort: 9443,
         toPort: 9443,
         protocol: "tcp",
@@ -189,7 +192,7 @@ const ctrlSecurityGroup = new aws.ec2.SecurityGroup(
       },
 
       {
-        description: "incoming k0s konnectivity from anywhere",
+        description: "outbound k0s konnectivity to anywhere",
         fromPort: 8132,
         toPort: 8132,
         protocol: "tcp",
@@ -258,7 +261,8 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         toPort: 4789,
         protocol: "tcp",
         // Only other workers should be attempting to sync calico VXLAN overlay
-        self: true,
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
       {
@@ -275,6 +279,24 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 8132,
         toPort: 8132,
         protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "inbound wireguard from anywhere",
+        fromPort: 51820,
+        toPort: 51820,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "inbound wireguard from anywhere",
+        fromPort: 51820,
+        toPort: 51820,
+        protocol: "udp",
         cidrBlocks: [ "0.0.0.0/0" ],
         ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
@@ -360,7 +382,8 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 4789,
         toPort: 4789,
         protocol: "tcp",
-        self: true,
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
       {
@@ -368,7 +391,26 @@ const workerSecurityGroup = new aws.ec2.SecurityGroup(
         fromPort: 10250,
         toPort: 10250,
         protocol: "tcp",
-        self: true,
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound wireguard to anywhere",
+        fromPort: 51820,
+        toPort: 51820,
+        protocol: "tcp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
+      },
+
+      {
+        description: "outbound wireguard to anywhere",
+        fromPort: 51820,
+        toPort: 51820,
+        protocol: "udp",
+        cidrBlocks: [ "0.0.0.0/0" ],
+        ipv6CidrBlocks: [ "0.0.0.0/0" ],
       },
 
     ],
