@@ -1,0 +1,24 @@
+pgbench (14.1, server 14.2)
+starting vacuum...end.
+transaction type: <builtin: TPC-B (sort of)>
+scaling factor: 1000
+query mode: simple
+number of clients: 20
+number of threads: 2
+duration: 300 s
+number of transactions actually processed: 159145
+latency average = 37.689 ms
+initial connection time = 105.846 ms
+tps = 530.653615 (without initial connection time)
+statement latencies in milliseconds:
+         0.002  \set aid random(1, 100000 * :scale)
+         0.001  \set bid random(1, 1 * :scale)
+         0.001  \set tid random(1, 10 * :scale)
+         0.000  \set delta random(-5000, 5000)
+         0.995  BEGIN;
+         7.546  UPDATE pgbench_accounts SET abalance = abalance + :delta WHERE aid = :aid;
+         1.120  SELECT abalance FROM pgbench_accounts WHERE aid = :aid;
+         2.553  UPDATE pgbench_tellers SET tbalance = tbalance + :delta WHERE tid = :tid;
+         2.092  UPDATE pgbench_branches SET bbalance = bbalance + :delta WHERE bid = :bid;
+         2.523  INSERT INTO pgbench_history (tid, bid, aid, delta, mtime) VALUES (:tid, :bid, :aid, :delta, CURRENT_TIMESTAMP);
+        20.838  END;
